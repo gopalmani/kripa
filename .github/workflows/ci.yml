@@ -1,0 +1,52 @@
+name: Verify KRIPA
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build pinned Swiss Ephemeris
+        run: sh scripts/setup-swiss.sh
+      - name: Resolve modules and format candidate
+        run: |
+          go mod tidy
+          gofmt -w cmd internal
+          git diff > formatting.patch
+      - name: Vet and race tests
+        env:
+          SWISS_EPHEMERIS_PATH: ${{ github.workspace }}/.deps/swisseph/ephe
+        run: |
+          go vet ./...
+          go test -race -count=1 ./...
+      - name: Benchmarks and latency report
+        env:
+          SWISS_EPHEMERIS_PATH: ${{ github.workspace }}/.deps/swisseph/ephe
+        run: |
+          go test ./internal/api ./internal/chart ./internal/panchang -run '^$' -bench . -benchmem -count=1 | tee benchmarks.txt
+          go run ./cmd/latency -n 200 -c 4 | tee latency-results.json
+          GOMAXPROCS=1 go run ./cmd/latency -n 100 -c 1 | tee latency-single-cpu.json
+      - name: Build container
+        run: docker build --build-arg VERSION=${{ github.sha }} -t kripa:ci .
+      - name: Upload validation and formatting artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kripa-validation
+          path: |
+            formatting.patch
+            benchmarks.txt
+            latency-results.json
+            latency-single-cpu.json
+            .deps/ephemeris.sha256
+      - name: Enforce committed formatting and module lock
+        run: git diff --exit-code

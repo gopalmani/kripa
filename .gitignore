@@ -1,0 +1,9 @@
+.deps/
+bin/
+.env
+.env.*
+!.env.example
+secrets/
+*.log
+coverage.out
+latency-results.json
