@@ -1,29 +1,52 @@
-# Standalone implementation plan
+# Standalone KRIPA audit plan
 
-Approved direction: Go backend; zerolog; shared birth-chart and Panchang engine; public source; private deployments supported. Astrel and BrahminBooking integration is explicitly deferred.
+Baseline: `main` at `f453ce7` (2026-09-22), clean tree, origin
+`https://github.com/gopalmani/kripa.git`. Existing history is retained. This audit
+changes KRIPA only; no VM deployment or consumer/infrastructure changes.
 
-## Choices
+## Implementation and validation states
 
-- Go standard `net/http` server and JSON codec. No framework is required for five routes; avoid replacing standard interfaces without profiling evidence.
-- Direct cgo calls into pinned Swiss Ephemeris C code. In-process native calls avoid subprocess and Python service hops.
-- Serialize native sessions process-wide and pin their OS thread. Set path and Lahiri mode for every session. Scale CPU-heavy misses with separate processes only after measuring queue pressure.
-- Bounded LRU for daily Panchang JSON, with duplicate-request coalescing. No chart cache or persistent birth data. No SQL database, Redis, queue broker, or Kubernetes needed by KRIPA.
-- Private container network or loopback; service-token authentication outside loopback. Application login and public request abuse protection belong in consuming products later.
-- Immutable profile names, explicit unsupported fields, timestamped transitions, and reference tests.
+| Checkpoint | Implemented | Tested locally | Independent validation | CI | Container / architecture |
+| --- | --- | --- | --- | --- | --- |
+| Tropical chart / Astrel extraction | Yes | Native tests; four actual-Astrel regression cases | Pending broader angular references | Baseline passed; current run pending | Darwin ARM64 local; Linux matrix pending |
+| Swiss source/data pins and session isolation | Yes; checksum enforcement, override rejection, cleanup | Missing data/fallback; repeated uncached mixed requests; race tests | Source inspected, C race freedom not proved | Current run pending | Darwin ARM64 tested |
+| Core Panchang and numerical transitions | Yes, astronomical_preview | Six Indian locations; wraparound/multiple-transition invariants; period math | USNO new/full moon and one sunrise/sunset sanity case | Current run pending | Darwin ARM64 tested |
+| HTTP auth, deadlines, overload, strict decoding | Yes; malformed coordinate inputs now rejected | API tests, schema smoke, local SIGTERM | Not applicable | Current run pending | Container smoke matrix added |
+| Bounded cache and duplicate suppression | Yes; all version inputs in key | LRU/TTL/error/coalescing/cancellation/panic tests | Not applicable | Current run pending | No chart cache |
+| Observability | Request IDs; handler histogram; native duration/queue/failures; cache and admission counters | Metrics HTTP smoke and latency output | Not applicable | Current run pending | No remote service required |
+| README, conventions, OpenAPI, notices | Yes | OpenAPI validator and actual response schema checks | Licence/source inspection; no legal guarantee | Validator added | Notices copied into image |
+| Performance measurement | Expanded harness | Darwin ARM64 c=4 and GOMAXPROCS=1/c=1 | Intended VM acceptance pending | Both Linux architectures scheduled | No VM deployment |
 
-## Checkpoints
+## Completed audit checkpoints
 
-1. Extract chart math and create a narrow, versioned request contract.
-2. Build native adapter and startup checks; reject missing Swiss data instead of accepting Moshier fallback.
-3. Implement core Panchang and event root searches.
-4. Add bounded HTTP admission, deadlines, cache, metrics, logging and shutdown.
-5. Verify with native tests, concurrent mixed traffic, race detector and benchmarks.
-6. Document source, build, deployment, capabilities and measured limitations; commit everything.
+- [x] Fetch and verify repository/history/authentication; read implementation and all baseline tests/build files/docs.
+- [x] Establish fresh green baseline (native build, vet, race-enabled tests).
+- [x] Rewrite stale README before implementation edits.
+- [x] Audit actual supplied Astrel source, reproduce synthetic upstream fixtures without modifying Astrel.
+- [x] Inspect both Panchang references and licences; record differences; copy no reference code.
+- [x] Harden native lifecycle, readiness, HTTP request shape, request IDs and metrics.
+- [x] Pin expected data hashes; preserve exact third-party notices in image.
+- [x] Add OpenAPI and executable smoke checks with optional response-schema validation.
+- [x] Run local tests, native build, HTTP smoke, graceful SIGTERM and latency harness.
+- [ ] Commit and push normal successors to main; verify resulting Actions runs.
+- [ ] Record current Linux AMD64 and ARM64 container outcomes after CI.
 
-## Latency acceptance
+## Remaining release gates (planned)
 
-Target p95 <100 ms for successful chart and daily Panchang requests on the intended VM at an explicitly reported load. Report p50/p95/p99, concurrency, CPU allocation, cache mode, input diversity and error counts. A cached result is not evidence of uncached speed. Local loopback excludes Internet and reverse-proxy latency. Measure again on the ARM app VM before claiming the production SLO.
+- [ ] Independent position/angle and sunrise references across historical/future dates and boundary-heavy India-wide cases; explain all convention differences.
+- [ ] Calendar-specialist review of core limbs and daytime conventions; independently sourced near-sunrise and near-midnight transition cases.
+- [ ] Intended ARM64 VM acceptance at documented CPU/RAM, sustained duration, realistic input diversity and target concurrency. A short laptop run is not acceptance.
+- [ ] Bit-for-bit container reproducibility: pin base-image digests/apt snapshots and toolchain artifacts for a release. Current native source/data and Go modules are pinned; OS tags remain mutable.
+- [ ] Later Astrel adapter integration with full product-level regression suite; separate authorization/task.
+- [ ] Later BrahminBooking daily-Panchang client integration retaining preview semantics; separate task.
 
-## Non-goals for this checkpoint
+## Unsupported (not completion blockers for this astronomical preview)
 
-No consumer repository changes, live deployment, Firebase migration, payment integration, database migration, unreviewed festival calendar, lunar month naming, personalized muhurta, or public hosted calculation endpoint.
+Regional festivals, vrats, personalized muhurat/recommendations, lunar-month
+naming, Amanta/Purnimanta and adhika/kshaya rules. They require dedicated reviewed
+rule sets; no placeholders are emitted. No database, customer authentication,
+payments, bookings, Python service or per-request subprocess is planned.
+
+See [VALIDATION.md](VALIDATION.md) for exact evidence, references, measurements,
+and next-step commands. Checkmarks record work performed, not a certification of
+production or religious-calendar correctness.

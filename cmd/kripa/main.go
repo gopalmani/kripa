@@ -65,8 +65,8 @@ func main() {
 	if token == "" && (ip == nil || !ip.IsLoopback()) {
 		logger.Fatal().Msg("API token required when binding outside loopback")
 	}
-	if token != "" && len(token) < 32 {
-		logger.Fatal().Msg("API token must contain at least 32 characters")
+	if token != "" && (len(token) < 32 || strings.ContainsAny(token, " \t\r\n")) {
+		logger.Fatal().Msg("API token must contain at least 32 characters without whitespace")
 	}
 	cacheN, err := positiveInt("KRIPA_CACHE_ENTRIES", 512, 0, 10000)
 	if err != nil {

@@ -54,3 +54,25 @@ func TestExpiry(t *testing.T) {
 		t.Fatal("expired cache hit")
 	}
 }
+
+func TestFollowerCancellationAndPanicCleanup(t *testing.T) {
+	c := New(2, time.Hour)
+	entered, release, done := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	go func() {
+		defer close(done)
+		defer func() { _ = recover() }()
+		_, _, _ = c.Do(context.Background(), "x", func() ([]byte, error) { close(entered); <-release; panic("test") })
+	}()
+	<-entered
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, _, err := c.Do(ctx, "x", func() ([]byte, error) { t.Error("duplicate calculation"); return nil, nil }); !errors.Is(err, context.Canceled) {
+		t.Fatal("follower ignored cancellation")
+	}
+	close(release)
+	<-done
+	value, hit, err := c.Do(context.Background(), "x", func() ([]byte, error) { return []byte("recovered"), nil })
+	if err != nil || hit || string(value) != "recovered" {
+		t.Fatal("panic left a stale flight")
+	}
+}

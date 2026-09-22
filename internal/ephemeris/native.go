@@ -27,12 +27,18 @@ type Native struct{ path, version string }
 type nativeSession struct{}
 
 func New(path string) (*Native, error) {
+	if os.Getenv("SE_EPHE_PATH") != "" {
+		return nil, fmt.Errorf("SE_EPHE_PATH overrides Swiss configuration; unset it and use SWISS_EPHEMERIS_PATH")
+	}
 	if path == "" {
 		return nil, fmt.Errorf("ephemeris path is required")
 	}
 	path, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
+	}
+	if len(path) > 242 {
+		return nil, fmt.Errorf("ephemeris path exceeds Swiss native limit")
 	}
 	for _, name := range []string{"sepl_18.se1", "semo_18.se1", "seas_18.se1"} {
 		info, err := os.Stat(filepath.Join(path, name))
@@ -60,12 +66,24 @@ func New(path string) (*Native, error) {
 }
 func (n *Native) Version() string { return n.version }
 func (n *Native) WithSession(ctx context.Context, fn func(Session) error) error {
+	return n.WithSessionTiming(ctx, fn, nil)
+}
+
+// WithSessionTiming reports only native admission wait, excluding path setup.
+func (n *Native) WithSessionTiming(ctx context.Context, fn func(Session) error, waited func(time.Duration)) error {
+	started := time.Now()
 	select {
 	case nativeGate <- struct{}{}:
 	case <-ctx.Done():
+		if waited != nil {
+			waited(time.Since(started))
+		}
 		return ctx.Err()
 	}
 	defer func() { <-nativeGate }()
+	if waited != nil {
+		waited(time.Since(started))
+	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -75,6 +93,7 @@ func (n *Native) WithSession(ctx context.Context, fn func(Session) error) error 
 	defer C.free(unsafe.Pointer(path))
 	C.swe_set_ephe_path(path)
 	C.swe_set_sid_mode(C.SE_SIDM_LAHIRI, 0, 0)
+	defer C.swe_close()
 	return fn(nativeSession{})
 }
 func (nativeSession) JulianDay(t time.Time) (float64, error) {

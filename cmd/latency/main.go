@@ -17,19 +17,27 @@ import (
 	"os"
 	"runtime"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
 type result struct {
-	Case        string  `json:"case"`
-	Requests    int     `json:"requests"`
-	Concurrency int     `json:"concurrency"`
-	Errors      int     `json:"errors"`
-	P50         float64 `json:"p50_ms"`
-	P95         float64 `json:"p95_ms"`
-	P99         float64 `json:"p99_ms"`
-	TargetMet   bool    `json:"p95_under_100ms"`
+	Case          string  `json:"case"`
+	Requests      int     `json:"requests"`
+	Concurrency   int     `json:"concurrency"`
+	Errors        int     `json:"errors"`
+	P50           float64 `json:"p50_ms"`
+	P95           float64 `json:"p95_ms"`
+	P99           float64 `json:"p99_ms"`
+	Rejections    int     `json:"rejections"`
+	Duration      float64 `json:"duration_seconds"`
+	Throughput    float64 `json:"requests_per_second"`
+	Cold          float64 `json:"first_request_ms"`
+	CacheEntries  int     `json:"cache_entries"`
+	NativeMetrics string  `json:"server_metrics"`
+	TargetMet     bool    `json:"p95_under_100ms"`
 }
 
 func main() {
@@ -49,7 +57,7 @@ func main() {
 		name, path string
 		cache      int
 		vary       bool
-	}{{"charts_uncached", "/v1/charts", 0, true}, {"panchang_uncached", "/v1/panchang", 0, true}, {"panchang_warm", "/v1/panchang", 512, false}} {
+	}{{"charts_uncached", "/v1/charts", 0, true}, {"panchang_uncached", "/v1/panchang", 0, true}, {"panchang_warm", "/v1/panchang", 512, false}, {"mixed_uncached", "mixed", 0, true}} {
 		h := api.New(engine, api.Config{MaxInflight: 64, CacheEntries: tc.cache, Timeout: 10 * time.Second, Logger: zerolog.Nop()}).Handler()
 		server := httptest.NewServer(h)
 		client := &http.Client{Transport: &http.Transport{MaxIdleConns: 64, MaxIdleConnsPerHost: 64}, Timeout: 15 * time.Second}
@@ -59,7 +67,7 @@ func main() {
 				date = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, i%3650).Format("2006-01-02")
 			}
 			v := map[string]any{"date": date, "timezone": "Asia/Kolkata", "latitude": 12.9716, "longitude": 77.5946, "profile": "lahiri_upper_limb_v1"}
-			if tc.path == "/v1/charts" {
+			if tc.path == "/v1/charts" || (tc.path == "mixed" && i%2 == 0) {
 				v["profile"] = "western_tropical_v1"
 				v["time"] = "12:00"
 				v["time_status"] = "exact"
@@ -70,7 +78,14 @@ func main() {
 		do := func(i int) (time.Duration, error) {
 			body := payload(i)
 			start := time.Now()
-			resp, err := client.Post(server.URL+tc.path, "application/json", bytes.NewReader(body))
+			path := tc.path
+			if path == "mixed" {
+				path = "/v1/panchang"
+				if i%2 == 0 {
+					path = "/v1/charts"
+				}
+			}
+			resp, err := client.Post(server.URL+path, "application/json", bytes.NewReader(body))
 			if err != nil {
 				return time.Since(start), err
 			}
@@ -81,12 +96,14 @@ func main() {
 			}
 			return time.Since(start), nil
 		}
-		if _, err := do(0); err != nil {
+		cold, err := do(0)
+		if err != nil {
 			panic(err)
 		}
 		jobs := make(chan int)
 		times := make([]float64, *n)
 		errors := make([]bool, *n)
+		measuredStart := time.Now()
 		var wg sync.WaitGroup
 		for j := 0; j < *concurrency; j++ {
 			wg.Add(1)
@@ -104,6 +121,22 @@ func main() {
 		}
 		close(jobs)
 		wg.Wait()
+		duration := time.Since(measuredStart).Seconds()
+		metricResponse, err := client.Get(server.URL + "/metrics")
+		if err != nil {
+			panic(err)
+		}
+		metricBytes, err := io.ReadAll(metricResponse.Body)
+		metricResponse.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+		rejectionCount := 0
+		for _, line := range strings.Split(string(metricBytes), "\n") {
+			if strings.HasPrefix(line, "kripa_overload_rejections_total ") {
+				rejectionCount, _ = strconv.Atoi(strings.TrimPrefix(line, "kripa_overload_rejections_total "))
+			}
+		}
 		client.CloseIdleConnections()
 		server.Close()
 		sort.Float64s(times)
@@ -114,9 +147,9 @@ func main() {
 				count++
 			}
 		}
-		results = append(results, result{tc.name, *n, *concurrency, count, percentile(.5), percentile(.95), percentile(.99), count == 0 && percentile(.95) < 100})
+		results = append(results, result{Case: tc.name, Requests: *n, Concurrency: *concurrency, Errors: count, P50: percentile(.5), P95: percentile(.95), P99: percentile(.99), Rejections: rejectionCount, Duration: duration, Throughput: float64(*n) / duration, Cold: float64(cold) / float64(time.Millisecond), CacheEntries: tc.cache, NativeMetrics: string(metricBytes), TargetMet: count == 0 && percentile(.95) < 100})
 	}
-	out := map[string]any{"go": runtime.Version(), "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "gomaxprocs": runtime.GOMAXPROCS(0), "ephemeris": engine.Version(), "scope": "local HTTP loopback; no public network or reverse proxy; logging disabled", "results": results}
+	out := map[string]any{"go": runtime.Version(), "os": runtime.GOOS, "arch": runtime.GOARCH, "cpus": runtime.NumCPU(), "gomaxprocs": runtime.GOMAXPROCS(0), "ephemeris": engine.Version(), "scope": "local HTTP loopback; no public network or reverse proxy; logging disabled", "data_version": ephemeris.DataVersion, "native_build_flags": "-O2 -Wall -fPIC", "go_build_flags": "go run defaults; CGO enabled", "dataset": "Bengaluru 12.9716N 77.5946E Asia/Kolkata; varying dates from 2000-01-01 modulo 3650; charts local noon exact; warm Panchang 2026-09-21", "percentiles": "all measured attempts including errors; first request excluded; server metrics include first request", "results": results}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 	_ = enc.Encode(out)

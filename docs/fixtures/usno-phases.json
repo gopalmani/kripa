@@ -1,0 +1,14 @@
+{
+  "source": "https://aa.usno.navy.mil/api/moon/phases/date?date=2024-04-08&nump=4",
+  "retrieved": "2026-09-22",
+  "review_status": "source verified; broad astronomical sanity comparison only",
+  "conventions": "USNO primary geocentric lunar phase instants, UTC minute precision; compare KRIPA geocentric elongation 0/180 degrees. Lahiri subtraction cancels in elongation. Not an independent validation of sunrise or other limbs.",
+  "latitude": 12.9716,
+  "longitude": 77.5946,
+  "timezone": "Asia/Kolkata",
+  "tolerance_seconds": 300,
+  "cases": [
+    {"date": "2024-04-08", "tithi_index": 30, "expected_utc": "2024-04-08T18:21:00Z"},
+    {"date": "2024-04-23", "tithi_index": 15, "expected_utc": "2024-04-23T23:49:00Z"}
+  ]
+}

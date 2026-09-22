@@ -65,7 +65,7 @@ func (r Request) Validate() (time.Time, *time.Location, error) {
 		return time.Time{}, nil, fmt.Errorf("invalid coordinates")
 	}
 	loc, err := time.LoadLocation(r.Timezone)
-	if err != nil || r.Timezone == "" {
+	if err != nil || (r.Timezone == "" || r.Timezone == "Local") {
 		return time.Time{}, nil, fmt.Errorf("invalid IANA timezone")
 	}
 	date, err := time.ParseInLocation("2006-01-02", r.Date, loc)

@@ -2,6 +2,7 @@ package panchang
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/gopalmani/kripa/internal/ephemeris"
 	"math"
 	"os"
@@ -89,26 +90,55 @@ func TestNativeAcrossIndia(t *testing.T) {
 	}
 }
 
-// Independent event sanity check: the 8 April 2024 new moon is near 18:21 UTC.
-// This broad 5-minute check catches time-scale/phase errors; it is not a Drik parity claim.
-func TestApril2024NewMoon(t *testing.T) {
+// Source-backed comparisons, not a complete Panchang accuracy certification.
+func TestUSNOPhases(t *testing.T) {
 	p := native(t)
-	r := Request{Date: "2024-04-08", Timezone: "Asia/Kolkata", Latitude: 12.9716, Longitude: 77.5946, Profile: Profile}
-	v, err := Calculate(context.Background(), p, r)
+	data, err := os.ReadFile("../../docs/fixtures/usno-phases.json")
 	if err != nil {
 		t.Fatal(err)
 	}
-	target := time.Date(2024, 4, 8, 18, 21, 0, 0, time.UTC)
-	for _, s := range v.Tithi {
-		if s.Index == 30 {
-			if math.Abs(s.EndsAt.Sub(target).Minutes()) > 5 {
-				t.Fatalf("new moon %s", s.EndsAt)
-			}
-			return
+	var fixture struct {
+		Latitude, Longitude float64
+		Timezone            string
+		Tolerance           float64 `json:"tolerance_seconds"`
+		Cases               []struct {
+			Date     string
+			Index    int       `json:"tithi_index"`
+			Expected time.Time `json:"expected_utc"`
 		}
 	}
-	t.Fatal("missing Amavasya")
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range fixture.Cases {
+		t.Run(tc.Date, func(t *testing.T) {
+			v, err := Calculate(context.Background(), p, Request{Date: tc.Date, Timezone: fixture.Timezone, Latitude: fixture.Latitude, Longitude: fixture.Longitude, Profile: Profile})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, segment := range v.Tithi {
+				if segment.Index == tc.Index {
+					if math.Abs(segment.EndsAt.Sub(tc.Expected).Seconds()) > fixture.Tolerance {
+						t.Fatalf("phase %s expected %s", segment.EndsAt, tc.Expected)
+					}
+					return
+				}
+			}
+			t.Fatal("missing phase segment")
+		})
+	}
 }
+func TestDaytimeWindows(t *testing.T) {
+	rise := time.Date(2024, 1, 1, 6, 0, 0, 0, time.UTC)
+	set := rise.Add(12 * time.Hour)
+	for n := 1; n <= 8; n++ {
+		w := period(rise, set, n)
+		if w.Start != rise.Add(time.Duration(n-1)*90*time.Minute) || w.End.Sub(w.Start) != 90*time.Minute {
+			t.Fatalf("window %d: %+v", n, w)
+		}
+	}
+}
+
 func BenchmarkPanchangCold(b *testing.B) {
 	p := native(b)
 	r := Request{Date: "2026-09-21", Timezone: "Asia/Kolkata", Latitude: 12.9716, Longitude: 77.5946, Profile: Profile}
@@ -117,5 +147,29 @@ func BenchmarkPanchangCold(b *testing.B) {
 		if _, err := Calculate(context.Background(), p, r); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func TestUSNOSunriseSunset(t *testing.T) {
+	p := native(t)
+	data, err := os.ReadFile("../../docs/fixtures/usno-sun.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Request
+		Sunrise, Sunset time.Time
+		Tolerance       float64 `json:"tolerance_seconds"`
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	fixture.Profile = Profile
+	got, err := Calculate(context.Background(), p, fixture.Request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if math.Abs(got.Sunrise.Sub(fixture.Sunrise).Seconds()) > fixture.Tolerance || math.Abs(got.Sunset.Sub(fixture.Sunset).Seconds()) > fixture.Tolerance {
+		t.Fatalf("USNO solar event discrepancy: %s %s", got.Sunrise, got.Sunset)
 	}
 }

@@ -7,7 +7,11 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -35,13 +39,30 @@ jobs:
           go test ./internal/api ./internal/chart ./internal/panchang -run '^$' -bench . -benchmem -count=1 | tee benchmarks.txt
           go run ./cmd/latency -n 200 -c 4 | tee latency-results.json
           GOMAXPROCS=1 go run ./cmd/latency -n 100 -c 1 | tee latency-single-cpu.json
+      - name: Validate OpenAPI
+        run: |
+          python3 -m venv /tmp/schema-check
+          /tmp/schema-check/bin/pip install openapi-spec-validator==0.7.2 PyYAML==6.0.3
+          /tmp/schema-check/bin/python -m openapi_spec_validator api/openapi.yaml
       - name: Build container
         run: docker build --build-arg VERSION=${{ github.sha }} -t kripa:ci .
+      - name: Smoke container and graceful shutdown
+        run: |
+          export KRIPA_API_TOKEN=$(openssl rand -hex 32)
+          docker run -d --name kripa-test --read-only --cap-drop ALL --security-opt no-new-privileges -e KRIPA_API_TOKEN -p 127.0.0.1:8080:8080 kripa:ci
+          trap 'docker rm -f kripa-test' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/health/live; then break; fi
+            sleep 1
+          done
+          /tmp/schema-check/bin/python scripts/smoke.py --schema
+          docker stop --time 20 kripa-test
+          test "$(docker inspect --format '{{.State.ExitCode}}' kripa-test)" = 0
       - name: Upload validation and formatting artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kripa-validation
+          name: kripa-validation-${{ matrix.runner }}
           path: |
             formatting.patch
             benchmarks.txt

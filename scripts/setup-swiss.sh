@@ -10,9 +10,16 @@ fi
 git -C "$dest" fetch --depth 1 origin "$commit"
 git -C "$dest" checkout --detach "$commit"
 test "$(git -C "$dest" rev-parse HEAD)" = "$commit"
+# Refuse modified tracked native sources rather than building an unlabelled variant.
+git -C "$dest" diff --exit-code HEAD --
 make -C "$dest" clean
 make -C "$dest" CFLAGS='-O2 -Wall -fPIC' libswe.a swetest
 for file in sepl_18.se1 semo_18.se1 seas_18.se1; do
   test -s "$dest/ephe/$file"
 done
-(cd "$dest/ephe" && sha256sum sepl_18.se1 semo_18.se1 seas_18.se1) > "$root/.deps/ephemeris.sha256"
+if command -v sha256sum >/dev/null 2>&1; then
+  (cd "$dest/ephe" && sha256sum -c "$root/scripts/ephemeris.sha256")
+else
+  (cd "$dest/ephe" && shasum -a 256 -c "$root/scripts/ephemeris.sha256")
+fi
+cp "$root/scripts/ephemeris.sha256" "$root/.deps/ephemeris.sha256"

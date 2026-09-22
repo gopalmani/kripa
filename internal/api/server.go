@@ -2,7 +2,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -34,15 +36,23 @@ type Config struct {
 	Logger       zerolog.Logger
 }
 type Server struct {
-	cfg       Config
-	engine    ephemeris.Provider
-	cache     *memo.Cache
-	slots     chan struct{}
-	requests  [3]atomic.Uint64
-	failures  [3]atomic.Uint64
-	duration  [3][7]atomic.Uint64
-	cacheHits atomic.Uint64
-	rejected  atomic.Uint64
+	cfg             Config
+	engine          ephemeris.Provider
+	cache           *memo.Cache
+	slots           chan struct{}
+	requests        [3]atomic.Uint64
+	failures        [3]atomic.Uint64
+	duration        [3][7]atomic.Uint64
+	cacheHits       atomic.Uint64
+	rejected        atomic.Uint64
+	requestSequence atomic.Uint64
+	requestPrefix   string
+	cacheMisses     atomic.Uint64
+	durationSum     [3]atomic.Uint64
+	calcCount       atomic.Uint64
+	calcNanos       atomic.Uint64
+	queueNanos      atomic.Uint64
+	nativeFailures  atomic.Uint64
 }
 
 func New(engine ephemeris.Provider, cfg Config) *Server {
@@ -55,7 +65,13 @@ func New(engine ephemeris.Provider, cfg Config) *Server {
 	if cfg.CacheTTL <= 0 {
 		cfg.CacheTTL = 24 * time.Hour
 	}
-	return &Server{cfg: cfg, engine: engine, cache: memo.New(cfg.CacheEntries, cfg.CacheTTL), slots: make(chan struct{}, cfg.MaxInflight)}
+	var prefix [8]byte
+	if _, err := rand.Read(prefix[:]); err != nil {
+		panic(err)
+	}
+	s := &Server{cfg: cfg, requestPrefix: hex.EncodeToString(prefix[:]), engine: engine, cache: memo.New(cfg.CacheEntries, cfg.CacheTTL), slots: make(chan struct{}, cfg.MaxInflight)}
+	s.engine = measuredProvider{Provider: engine, server: s}
+	return s
 }
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -64,15 +80,63 @@ func (s *Server) Handler() http.Handler {
 		writeJSON(w, 200, map[string]any{"service": "kripa", "version": s.cfg.Version, "ephemeris_version": s.engine.Version(), "ephemeris_commit": ephemeris.SwissCommit, "data_version": ephemeris.DataVersion, "source_url": SourceURL, "license": "AGPL-3.0-or-later", "profiles": []string{"western_tropical_v1", panchang.Profile}, "date_range": "1900-01-01/2099-12-31", "panchang_review_status": "astronomical_preview"})
 	})
 	mux.Handle("GET /health/ready", s.protected(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case s.slots <- struct{}{}:
+			defer func() { <-s.slots }()
+		default:
+			s.rejected.Add(1)
+			w.Header().Set("Retry-After", "1")
+			writeError(w, 503, "overloaded")
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), s.cfg.Timeout)
+		defer cancel()
+		err := s.engine.WithSession(ctx, func(session ephemeris.Session) error {
+			jd, err := session.JulianDay(time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC))
+			if err != nil {
+				return err
+			}
+			for _, body := range []int{0, 1, 15} {
+				if _, err := session.Position(jd, body, false); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			writeError(w, 503, "ephemeris_unavailable")
+			return
+		}
 		writeJSON(w, 200, map[string]string{"status": "ready", "ephemeris": s.engine.Version()})
 	})))
 	mux.Handle("GET /metrics", s.protected(http.HandlerFunc(s.metrics)))
 	mux.Handle("POST /v1/charts", s.protected(s.calculate(0)))
 	mux.Handle("POST /v1/panchang", s.protected(s.calculate(1)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Request-ID", fmt.Sprintf("%s-%d", s.requestPrefix, s.requestSequence.Add(1)))
+		defer func() {
+			if recover() != nil {
+				writeError(w, 500, "internal_error")
+			}
+		}()
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Link", "<"+SourceURL+">; rel=\"source\"")
+		// Avoid ServeMux's plain-text 404/405 responses for this JSON API.
+		methods := map[string]string{"/health/live": "GET", "/health/ready": "GET", "/v1/meta": "GET", "/metrics": "GET", "/v1/charts": "POST", "/v1/panchang": "POST"}
+		method, exists := methods[r.URL.Path]
+		if !exists {
+			writeError(w, 404, "not_found")
+			return
+		}
+		if r.Method != method && !(method == "GET" && r.Method == "HEAD") {
+			if method == "GET" {
+				method = "GET, HEAD"
+			}
+			w.Header().Set("Allow", method)
+			writeError(w, 405, "method_not_allowed")
+			return
+		}
 		mux.ServeHTTP(w, r)
 	})
 }
@@ -96,15 +160,65 @@ func decode(w http.ResponseWriter, r *http.Request, dst any) error {
 		return errMedia
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 8192)
-	dec := json.NewDecoder(r.Body)
+	// Validate object shape before decoding: encoding/json otherwise accepts
+	// null and silently lets duplicate keys overwrite earlier values.
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return err
+	}
+	shape := json.NewDecoder(bytes.NewReader(body))
+	token, err := shape.Token()
+	if err != nil || token != json.Delim('{') {
+		return errors.New("expected object")
+	}
+	fields := map[string]json.RawMessage{}
+	allowed := map[string]bool{"date": true, "timezone": true, "latitude": true, "longitude": true, "profile": true}
+	if _, ok := dst.(*chart.Request); ok {
+		allowed["time"] = true
+		allowed["time_status"] = true
+	}
+	for shape.More() {
+		token, err := shape.Token()
+		if err != nil {
+			return err
+		}
+		key, ok := token.(string)
+		if !ok {
+			return errors.New("expected field")
+		}
+		if !allowed[key] {
+			return errors.New("unknown field")
+		}
+		if _, exists := fields[key]; exists {
+			return errors.New("duplicate field")
+		}
+		var value json.RawMessage
+		if err := shape.Decode(&value); err != nil {
+			return err
+		}
+		if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return errors.New("null field")
+		}
+		fields[key] = value
+	}
+	if _, err := shape.Token(); err != nil {
+		return err
+	}
+	required := []string{"date", "timezone", "latitude", "longitude", "profile"}
+	if _, ok := dst.(*chart.Request); ok {
+		required = append(required, "time_status")
+	}
+	for _, key := range required {
+		if _, ok := fields[key]; !ok {
+			return errors.New("missing required field")
+		}
+	}
+	dec := json.NewDecoder(bytes.NewReader(body))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(dst); err != nil {
 		return err
 	}
 	if err := dec.Decode(&struct{}{}); err != io.EOF {
-		if err != nil {
-			return err
-		}
 		return errors.New("expected one JSON object")
 	}
 	return nil
@@ -139,7 +253,8 @@ func (s *Server) calculate(kind int) http.Handler {
 				}
 			}
 			s.duration[kind][bucket].Add(1)
-			s.cfg.Logger.Debug().Str("route", route).Int("status", status).Bool("cache_hit", cached).Dur("duration_ms", elapsed).Msg("request")
+			s.durationSum[kind].Add(uint64(elapsed))
+			s.cfg.Logger.Debug().Str("request_id", w.Header().Get("X-Request-ID")).Str("method", r.Method).Str("route", route).Int("status", status).Bool("cache_hit", cached).Dur("duration_ms", elapsed).Msg("request")
 		}()
 		fail := func(code int, msg string) { status = code; writeError(w, code, msg) }
 		select {
@@ -182,8 +297,9 @@ func (s *Server) calculate(kind int) http.Handler {
 			}
 			input, _ := json.Marshal(req)
 			digest := sha256.Sum256(input)
-			key := panchang.Version + ":" + hex.EncodeToString(digest[:])
+			key := panchang.Version + ":" + s.engine.Version() + ":" + ephemeris.SwissCommit + ":" + ephemeris.DataVersion + ":" + hex.EncodeToString(digest[:])
 			data, cached, err = s.cache.Do(ctx, key, func() ([]byte, error) {
+				s.cacheMisses.Add(1)
 				value, err := panchang.Calculate(ctx, s.engine, req)
 				if err != nil {
 					return nil, err
@@ -247,6 +363,35 @@ func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
 			_, _ = fmt.Fprintf(w, "kripa_request_duration_seconds_bucket{route=%q,le=%q} %d\n", route, bound, total)
 		}
 		_, _ = fmt.Fprintf(w, "kripa_request_duration_seconds_count{route=%q} %d\n", route, total)
+		_, _ = fmt.Fprintf(w, "kripa_request_duration_seconds_sum{route=%q} %g\n", route, float64(s.durationSum[k].Load())/1e9)
 	}
 	_, _ = fmt.Fprintf(w, "kripa_cache_hits_total %d\nkripa_overload_rejections_total %d\nkripa_inflight %d\n", s.cacheHits.Load(), s.rejected.Load(), len(s.slots))
+	_, _ = fmt.Fprintf(w, "kripa_cache_misses_total %d\nkripa_calculation_duration_seconds_sum %g\nkripa_calculation_duration_seconds_count %d\nkripa_native_queue_wait_seconds_total %g\nkripa_native_failures_total %d\n", s.cacheMisses.Load(), float64(s.calcNanos.Load())/1e9, s.calcCount.Load(), float64(s.queueNanos.Load())/1e9, s.nativeFailures.Load())
+}
+
+// Measure time waiting for the native gate separately from time inside a session.
+// Counts include readiness probes; no input values enter metric labels.
+type measuredProvider struct {
+	ephemeris.Provider
+	server *Server
+}
+
+func (p measuredProvider) WithSession(ctx context.Context, fn func(ephemeris.Session) error) error {
+	timed := func(session ephemeris.Session) error {
+		start := time.Now()
+		defer func() { p.server.calcCount.Add(1); p.server.calcNanos.Add(uint64(time.Since(start))) }()
+		return fn(session)
+	}
+	var err error
+	if provider, ok := p.Provider.(interface {
+		WithSessionTiming(context.Context, func(ephemeris.Session) error, func(time.Duration)) error
+	}); ok {
+		err = provider.WithSessionTiming(ctx, timed, func(wait time.Duration) { p.server.queueNanos.Add(uint64(wait)) })
+	} else {
+		err = p.Provider.WithSession(ctx, timed)
+	}
+	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, ephemeris.ErrNoEvent) {
+		p.server.nativeFailures.Add(1)
+	}
+	return err
 }

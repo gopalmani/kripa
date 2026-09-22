@@ -1,0 +1,14 @@
+{
+  "source": "https://aa.usno.navy.mil/api/rstt/oneday?date=2024-06-21&coords=12.9716,77.5946&tz=5.5",
+  "methodology": "https://aa.usno.navy.mil/faq/RST_defs",
+  "retrieved": "2026-09-22",
+  "review_status": "broad independent sanity comparison; convention differences retained",
+  "date": "2024-06-21",
+  "timezone": "Asia/Kolkata",
+  "latitude": 12.9716,
+  "longitude": 77.5946,
+  "sunrise": "2024-06-21T05:55:00+05:30",
+  "sunset": "2024-06-21T18:48:00+05:30",
+  "tolerance_seconds": 120,
+  "conventions": "USNO uses solar centre zenith distance 90.8333 degrees (average 16 arcminute radius plus 34 arcminute refraction), sea level. KRIPA uses Swiss upper limb with actual radius and atmosphere 1013.25 hPa/15 C. Both report upper-limb events but are not identical models. Two-minute tolerance allows minute-rounded reference and model differences; not a physical accuracy guarantee."
+}

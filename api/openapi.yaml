@@ -1,0 +1,887 @@
+openapi: 3.0.3
+info:
+  title: KRIPA calculation API
+  version: 1.0.0
+  license:
+    name: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+  description: Private service API; all protected routes require bearer authentication
+    when configured. Token omission is allowed only in loopback development. Valid
+    v1 payloads are preserved; malformed/missing coordinates are rejected. All bodies
+    are JSON except metrics. Unknown paths return 404 Error. GET routes also support
+    HEAD. No selectable elevation, zodiac or house options beyond the profiles. See
+    docs/CONVENTIONS.md and docs/VALIDATION.md.
+servers:
+- url: http://127.0.0.1:8080
+  description: Local development
+security:
+- serviceToken: []
+paths:
+  /v1/charts:
+    post:
+      operationId: calculateChart
+      summary: Calculate Chart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChartRequest'
+            example:
+              date: '2000-01-01'
+              time: '12:00'
+              timezone: UTC
+              time_status: exact
+              latitude: 51.5
+              longitude: 0
+              profile: western_tropical_v1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chart'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+            X-Kripa-Cache:
+              schema:
+                type: string
+                enum:
+                - HIT
+                - MISS
+              description: HIT includes coalesced followers; charts always MISS.
+        '400': &id001
+          description: Invalid JSON, duplicate/null/unknown or missing required field;
+            trailing JSON.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '401': &id002
+          description: Missing or incorrect bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id014
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '413': &id003
+          description: Body exceeds 8192 bytes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '415': &id004
+          description: Content-Type must be application/json.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '422': &id005
+          description: Invalid date/time/timezone/coordinates/profile or unavailable
+            sunrise/sunset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '500': &id006
+          description: Recovered internal panic.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id010
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '503': &id007
+          description: 'Native calculation unavailable or admission saturated; overload
+            includes Retry-After: 1.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+            Retry-After:
+              schema:
+                type: string
+              description: 1 for overload, absent for native failure.
+        '504': &id008
+          description: Calculation or native queue deadline exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+  /v1/panchang:
+    post:
+      operationId: calculatePanchang
+      summary: Calculate Panchang
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PanchangRequest'
+            example:
+              date: '2026-09-21'
+              timezone: Asia/Kolkata
+              latitude: 12.9716
+              longitude: 77.5946
+              profile: lahiri_upper_limb_v1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Panchang'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+            X-Kripa-Cache:
+              schema:
+                type: string
+                enum:
+                - HIT
+                - MISS
+              description: HIT includes coalesced followers; charts always MISS.
+        '400': *id001
+        '401': *id002
+        '413': *id003
+        '415': *id004
+        '422': *id005
+        '500': *id006
+        '503': *id007
+        '504': *id008
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+  /health/live:
+    get:
+      operationId: getLive
+      summary: Get live
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Live'
+          headers: &id009
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '500': *id006
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id011
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+      security: &id012 []
+    head:
+      operationId: getLiveHead
+      summary: Headers for /health/live
+      responses:
+        '200':
+          description: Success
+          headers: *id009
+        '500':
+          description: Recovered internal panic.
+          headers: *id010
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          headers: *id011
+      security: *id012
+  /health/ready:
+    get:
+      operationId: getReady
+      summary: Get ready
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ready'
+          headers: &id013
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '500': *id006
+        '401': *id002
+        '503':
+          description: Native readiness probe failed or timed out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id015
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id016
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+    head:
+      operationId: getReadyHead
+      summary: Headers for /health/ready
+      responses:
+        '200':
+          description: Success
+          headers: *id013
+        '500':
+          description: Recovered internal panic.
+          headers: *id010
+        '401':
+          description: Missing or incorrect bearer token.
+          headers: *id014
+        '503':
+          description: Native readiness probe failed or timed out.
+          headers: *id015
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          headers: *id016
+  /v1/meta:
+    get:
+      operationId: getMetadata
+      summary: Get metadata
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metadata'
+          headers: &id017
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '500': *id006
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id018
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+      security: &id019 []
+    head:
+      operationId: getMetadataHead
+      summary: Headers for /v1/meta
+      responses:
+        '200':
+          description: Success
+          headers: *id017
+        '500':
+          description: Recovered internal panic.
+          headers: *id010
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          headers: *id018
+      security: *id019
+  /metrics:
+    get:
+      operationId: getMetrics
+      summary: Low-cardinality Prometheus metrics
+      responses:
+        '200':
+          description: Calculation route requests/errors/latency, cache hits (including
+            coalesced followers)/misses, inflight, overload, native duration/queue/failures.
+            Native totals include readiness probes.
+          content:
+            text/plain:
+              schema:
+                type: string
+          headers: &id020
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '401': *id002
+        '500': *id006
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers: &id021
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+    head:
+      operationId: getMetricsHead
+      summary: Headers for /metrics
+      responses:
+        '200':
+          description: Calculation route requests/errors/latency, cache hits (including
+            coalesced followers)/misses, inflight, overload, native duration/queue/failures.
+            Native totals include readiness probes.
+          headers: *id020
+        '401':
+          description: Missing or incorrect bearer token.
+          headers: *id014
+        '500':
+          description: Recovered internal panic.
+          headers: *id010
+        '405':
+          description: Wrong method; Allow header lists accepted methods.
+          headers: *id021
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      description: Environment configured service token; not an application-user JWT.
+  schemas:
+    ChartRequest:
+      type: object
+      properties:
+        date: &id022
+          type: string
+          format: date
+          description: Gregorian local date from 1900-01-01 through 2099-12-31.
+        timezone: &id023
+          type: string
+          description: IANA timezone or UTC; Local is rejected.
+        latitude: &id024
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          description: Decimal degrees north positive; required even when zero.
+        longitude: &id025
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          description: Decimal degrees east positive; required even when zero.
+        time:
+          type: string
+          pattern: ^(\d{2}:\d{2}(:\d{2})?)?$
+          description: Required for exact/approximate. Omit for unknown (local noon
+            used). DST gaps/overlaps rejected.
+        time_status:
+          type: string
+          enum:
+          - exact
+          - approximate
+          - unknown
+        profile:
+          type: string
+          enum:
+          - western_tropical_v1
+      required:
+      - date
+      - timezone
+      - latitude
+      - longitude
+      - time_status
+      - profile
+      additionalProperties: false
+    PanchangRequest:
+      type: object
+      properties:
+        date: *id022
+        timezone: *id023
+        latitude: *id024
+        longitude: *id025
+        profile:
+          type: string
+          enum:
+          - lahiri_upper_limb_v1
+      required:
+      - date
+      - timezone
+      - latitude
+      - longitude
+      - profile
+      additionalProperties: false
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Machine code, or input-validation message on 422.
+      required:
+      - error
+      additionalProperties: false
+    ChartMetadata:
+      type: object
+      properties:
+        calculation_version:
+          type: string
+          enum:
+          - kripa-tropical-v1
+        ephemeris_version:
+          type: string
+        house_system:
+          type: string
+          enum:
+          - placidus
+          - whole_sign
+          - unavailable
+        data_quality:
+          type: string
+          enum:
+          - high
+          - standard
+      required:
+      - calculation_version
+      - ephemeris_version
+      - house_system
+      - data_quality
+      additionalProperties: false
+    Planet:
+      type: object
+      properties:
+        planet:
+          type: string
+          enum:
+          - Sun
+          - Moon
+          - Mercury
+          - Venus
+          - Mars
+          - Jupiter
+          - Saturn
+          - Uranus
+          - Neptune
+          - Pluto
+          - North Node
+          - Chiron
+          - South Node
+        sign: &id026
+          type: string
+          enum: &id028
+          - Aries
+          - Taurus
+          - Gemini
+          - Cancer
+          - Leo
+          - Virgo
+          - Libra
+          - Scorpio
+          - Sagittarius
+          - Capricorn
+          - Aquarius
+          - Pisces
+        degree: &id027
+          type: number
+          format: double
+          minimum: 0
+          maximum: 30
+          exclusiveMaximum: true
+          description: Degrees within the named sign.
+        house:
+          type: integer
+          minimum: 1
+          maximum: 12
+          nullable: true
+        retrograde:
+          type: boolean
+      required:
+      - planet
+      - sign
+      - degree
+      - house
+      - retrograde
+      additionalProperties: false
+    House:
+      type: object
+      properties:
+        house:
+          type: integer
+          minimum: 1
+          maximum: 12
+        sign: *id026
+        degree: *id027
+      required:
+      - house
+      - sign
+      - degree
+      additionalProperties: false
+    Aspect:
+      type: object
+      properties:
+        planet_a:
+          type: string
+        planet_b:
+          type: string
+        aspect:
+          type: string
+          enum:
+          - conjunction
+          - sextile
+          - square
+          - trine
+          - opposition
+        orb:
+          type: number
+          format: double
+          minimum: 0
+          description: Absolute deviation from exact aspect, degrees.
+      required:
+      - planet_a
+      - planet_b
+      - aspect
+      - orb
+      additionalProperties: false
+    Chart:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/ChartMetadata'
+        planets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Planet'
+          minItems: 13
+          maxItems: 13
+        houses:
+          type: array
+          items:
+            $ref: '#/components/schemas/House'
+          maxItems: 12
+        aspects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aspect'
+        sun_sign: *id026
+        ascendant:
+          type: string
+          enum: *id028
+          nullable: true
+        ascendant_degree:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 30
+          exclusiveMaximum: true
+          description: Degrees within the named sign.
+          nullable: true
+        mc:
+          type: string
+          enum: *id028
+          nullable: true
+        mc_degree:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 30
+          exclusiveMaximum: true
+          description: Degrees within the named sign.
+          nullable: true
+      required:
+      - metadata
+      - planets
+      - houses
+      - aspects
+      - sun_sign
+      - ascendant
+      - ascendant_degree
+      - mc
+      - mc_degree
+      additionalProperties: false
+    Segment:
+      type: object
+      properties:
+        index:
+          type: integer
+          minimum: 1
+          maximum: 60
+          description: 'One-based: tithi 1–30, nakshatra/yoga 1–27, karana 1–60.'
+        name:
+          type: string
+        active_from: &id029
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp with explicit offset, rounded to nearest
+            second.
+        ends_at: *id029
+      required:
+      - index
+      - name
+      - active_from
+      - ends_at
+      additionalProperties: false
+      description: Half-open segment; first active_from is clipped to sunrise, last
+        ends_at is the actual transition and can exceed next_sunrise. Intersect with
+        [sunrise,next_sunrise).
+    Window:
+      type: object
+      properties:
+        start: *id029
+        end: *id029
+      required:
+      - start
+      - end
+      additionalProperties: false
+    Panchang:
+      type: object
+      properties:
+        date: *id022
+        timezone: *id023
+        latitude: *id024
+        longitude: *id025
+        profile:
+          type: string
+          enum:
+          - lahiri_upper_limb_v1
+        calculation_version:
+          type: string
+          enum:
+          - kripa-panchang-lahiri-v1
+        ephemeris_version:
+          type: string
+        review_status:
+          type: string
+          enum:
+          - astronomical_preview
+        sunrise: *id029
+        sunset: *id029
+        next_sunrise: *id029
+        moonrise:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp with explicit offset, rounded to nearest
+            second.
+          nullable: true
+        moonset:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp with explicit offset, rounded to nearest
+            second.
+          nullable: true
+        vaar:
+          type: string
+          enum:
+          - Ravivara
+          - Somavara
+          - Mangalavara
+          - Budhavara
+          - Guruvara
+          - Shukravara
+          - Shanivara
+        paksha_at_sunrise:
+          type: string
+          enum:
+          - Shukla
+          - Krishna
+        tithi:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          minItems: 1
+        nakshatra:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          minItems: 1
+        yoga:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          minItems: 1
+        karana:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          minItems: 1
+        rahu_kalam:
+          $ref: '#/components/schemas/Window'
+        yamaganda:
+          $ref: '#/components/schemas/Window'
+        gulika:
+          $ref: '#/components/schemas/Window'
+        unsupported:
+          type: array
+          items:
+            type: string
+        conventions:
+          type: array
+          items:
+            type: string
+      required:
+      - date
+      - timezone
+      - latitude
+      - longitude
+      - profile
+      - calculation_version
+      - ephemeris_version
+      - review_status
+      - sunrise
+      - sunset
+      - next_sunrise
+      - moonrise
+      - moonset
+      - vaar
+      - paksha_at_sunrise
+      - tithi
+      - nakshatra
+      - yoga
+      - karana
+      - rahu_kalam
+      - yamaganda
+      - gulika
+      - unsupported
+      - conventions
+      additionalProperties: false
+      description: Astronomical preview. Moon events cover the requested civil day;
+        null means no event. Vara/paksha apply at sunrise. No lunar months, festivals,
+        vrats or personalized recommendations.
+    Live:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - live
+      required:
+      - status
+      additionalProperties: false
+    Ready:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - ready
+        ephemeris:
+          type: string
+      required:
+      - status
+      - ephemeris
+      additionalProperties: false
+    Metadata:
+      type: object
+      properties:
+        service:
+          type: string
+          enum:
+          - kripa
+        version:
+          type: string
+          description: Build revision; development if not supplied.
+        ephemeris_version:
+          type: string
+        ephemeris_commit:
+          type: string
+        data_version:
+          type: string
+        source_url:
+          type: string
+          format: uri
+        license:
+          type: string
+          enum:
+          - AGPL-3.0-or-later
+        profiles:
+          type: array
+          items:
+            type: string
+            enum:
+            - western_tropical_v1
+            - lahiri_upper_limb_v1
+        date_range:
+          type: string
+          enum:
+          - 1900-01-01/2099-12-31
+        panchang_review_status:
+          type: string
+          enum:
+          - astronomical_preview
+      required:
+      - service
+      - version
+      - ephemeris_version
+      - ephemeris_commit
+      - data_version
+      - source_url
+      - license
+      - profiles
+      - date_range
+      - panchang_review_status
+      additionalProperties: false

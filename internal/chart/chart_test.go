@@ -2,8 +2,12 @@ package chart
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/gopalmani/kripa/internal/ephemeris"
+	"math"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -83,5 +87,87 @@ func BenchmarkChart(b *testing.B) {
 		if _, err := Calculate(context.Background(), p, r); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+// Expected results were produced by the actual supplied Astrel SwissEngine in
+// an isolated module. This is upstream compatibility, not independent accuracy.
+func TestAstrelReferenceCharts(t *testing.T) {
+	p := native(t)
+	data, err := os.ReadFile("../../docs/fixtures/astrel-charts.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Tolerance float64 `json:"angular_tolerance_degrees"`
+		Cases     []struct {
+			Request
+			Expected Chart `json:"expected"`
+		}
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	for i, tc := range fixture.Cases {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			tc.Request.Profile = "western_tropical_v1"
+			got, err := Calculate(context.Background(), p, tc.Request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := tc.Expected
+			if got.Metadata.HouseSystem != want.Metadata.HouseSystem || got.Metadata.DataQuality != want.Metadata.DataQuality || got.SunSign != want.SunSign || len(got.Planets) != len(want.Planets) || len(got.Houses) != len(want.Houses) || len(got.Aspects) != len(want.Aspects) {
+				t.Fatal("chart structure diverged")
+			}
+			near := func(a, b float64) {
+				t.Helper()
+				if math.Abs(a-b) > fixture.Tolerance {
+					t.Errorf("angular difference %g > %g", math.Abs(a-b), fixture.Tolerance)
+				}
+			}
+			for i, a := range got.Planets {
+				b := want.Planets[i]
+				if a.Planet != b.Planet || a.Sign != b.Sign || a.Retrograde != b.Retrograde || !reflect.DeepEqual(a.House, b.House) {
+					t.Errorf("planet %s diverged", a.Planet)
+				}
+				near(a.Degree, b.Degree)
+			}
+			for i, a := range got.Houses {
+				b := want.Houses[i]
+				if a.Sign != b.Sign || a.House != b.House {
+					t.Error("house diverged")
+				}
+				near(a.Degree, b.Degree)
+			}
+			for i, a := range got.Aspects {
+				b := want.Aspects[i]
+				if a.PlanetA != b.PlanetA || a.PlanetB != b.PlanetB || a.Aspect != b.Aspect {
+					t.Error("aspect diverged")
+				}
+				near(a.Orb, b.Orb)
+			}
+			if !reflect.DeepEqual(got.AscendantSign, want.AscendantSign) || !reflect.DeepEqual(got.MCSign, want.MCSign) {
+				t.Error("angle sign diverged")
+			}
+			if got.AscendantDegree != nil {
+				near(*got.AscendantDegree, *want.AscendantDegree)
+				near(*got.MCDegree, *want.MCDegree)
+			}
+		})
+	}
+}
+func TestNonHourDSTAndLocalZone(t *testing.T) {
+	r := request()
+	r.Timezone = "Australia/Lord_Howe"
+	for _, tc := range []struct{ date, clock string }{{"2024-04-07", "01:45"}, {"2024-10-06", "02:15"}} {
+		r.Date, r.Time = tc.date, tc.clock
+		if _, _, err := r.Resolve(); err == nil {
+			t.Fatal("accepted half-hour DST gap/overlap")
+		}
+	}
+	r = request()
+	r.Timezone = "Local"
+	if _, _, err := r.Resolve(); err == nil {
+		t.Fatal("accepted host-dependent zone")
 	}
 }

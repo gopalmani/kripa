@@ -1,0 +1,1160 @@
+{
+  "angular_tolerance_degrees": 0.02,
+  "binding": "github.com/bharathak/gose v0.0.1",
+  "cases": [
+    {
+      "date": "2000-01-01",
+      "time": "12:00",
+      "timezone": "UTC",
+      "time_status": "exact",
+      "latitude": 51.5,
+      "longitude": 0,
+      "expected": {
+        "metadata": {
+          "calculation_version": "swiss-ephemeris-tropical-v1",
+          "ephemeris_version": "2.10.03",
+          "house_system": "placidus",
+          "data_quality": "high"
+        },
+        "planets": [
+          {
+            "planet": "Sun",
+            "sign": "Capricorn",
+            "degree": 10.3689186985535,
+            "house": 10,
+            "retrograde": false
+          },
+          {
+            "planet": "Moon",
+            "sign": "Scorpio",
+            "degree": 13.323751218928464,
+            "house": 7,
+            "retrograde": false
+          },
+          {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "degree": 1.8892770330247686,
+            "house": 9,
+            "retrograde": false
+          },
+          {
+            "planet": "Venus",
+            "sign": "Sagittarius",
+            "degree": 1.5657883870169371,
+            "house": 8,
+            "retrograde": false
+          },
+          {
+            "planet": "Mars",
+            "sign": "Aquarius",
+            "degree": 27.963302559285694,
+            "house": 12,
+            "retrograde": false
+          },
+          {
+            "planet": "Jupiter",
+            "sign": "Aries",
+            "degree": 25.253087822239806,
+            "house": 1,
+            "retrograde": false
+          },
+          {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "degree": 10.395663477707863,
+            "house": 1,
+            "retrograde": true
+          },
+          {
+            "planet": "Uranus",
+            "sign": "Aquarius",
+            "degree": 14.809186721196511,
+            "house": 11,
+            "retrograde": false
+          },
+          {
+            "planet": "Neptune",
+            "sign": "Aquarius",
+            "degree": 3.193011808289782,
+            "house": 11,
+            "retrograde": false
+          },
+          {
+            "planet": "Pluto",
+            "sign": "Sagittarius",
+            "degree": 11.454777193605622,
+            "house": 8,
+            "retrograde": false
+          },
+          {
+            "planet": "North Node",
+            "sign": "Leo",
+            "degree": 3.9540238603599107,
+            "house": 5,
+            "retrograde": true
+          },
+          {
+            "planet": "Chiron",
+            "sign": "Sagittarius",
+            "degree": 11.61762351799186,
+            "house": 8,
+            "retrograde": false
+          },
+          {
+            "planet": "South Node",
+            "sign": "Aquarius",
+            "degree": 3.954023860359939,
+            "house": 11,
+            "retrograde": true
+          }
+        ],
+        "houses": [
+          {
+            "house": 1,
+            "sign": "Aries",
+            "degree": 24.287305086198064
+          },
+          {
+            "house": 2,
+            "sign": "Gemini",
+            "degree": 1.161799412691117
+          },
+          {
+            "house": 3,
+            "sign": "Gemini",
+            "degree": 22.030012128932725
+          },
+          {
+            "house": 4,
+            "sign": "Cancer",
+            "degree": 9.611087800284565
+          },
+          {
+            "house": 5,
+            "sign": "Cancer",
+            "degree": 29.053371520495944
+          },
+          {
+            "house": 6,
+            "sign": "Leo",
+            "degree": 27.68737520471467
+          },
+          {
+            "house": 7,
+            "sign": "Libra",
+            "degree": 24.287305086198074
+          },
+          {
+            "house": 8,
+            "sign": "Sagittarius",
+            "degree": 1.1617994126911242
+          },
+          {
+            "house": 9,
+            "sign": "Sagittarius",
+            "degree": 22.030012128932754
+          },
+          {
+            "house": 10,
+            "sign": "Capricorn",
+            "degree": 9.611087800284565
+          },
+          {
+            "house": 11,
+            "sign": "Capricorn",
+            "degree": 29.053371520495944
+          },
+          {
+            "house": 12,
+            "sign": "Aquarius",
+            "degree": 27.68737520471467
+          }
+        ],
+        "aspects": [
+          {
+            "planet_a": "Sun",
+            "planet_b": "Moon",
+            "aspect": "sextile",
+            "orb": 2.954832520374964
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Saturn",
+            "aspect": "trine",
+            "orb": 0.026744779154370235
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Saturn",
+            "aspect": "opposition",
+            "orb": 2.928087741220594
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Uranus",
+            "aspect": "square",
+            "orb": 1.4854355022680465
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 3.9259744737390747
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Jupiter",
+            "aspect": "trine",
+            "orb": 6.6361892107849485
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Mars",
+            "aspect": "square",
+            "orb": 3.6024858277312433
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Neptune",
+            "aspect": "sextile",
+            "orb": 1.627223421272845
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "North Node",
+            "aspect": "trine",
+            "orb": 2.3882354733429736
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "South Node",
+            "aspect": "sextile",
+            "orb": 2.388235473343002
+          },
+          {
+            "planet_a": "Mars",
+            "planet_b": "Jupiter",
+            "aspect": "sextile",
+            "orb": 2.710214737045874
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "Uranus",
+            "aspect": "square",
+            "orb": 4.413523243488669
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "North Node",
+            "aspect": "square",
+            "orb": 6.44163961734796
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "South Node",
+            "aspect": "square",
+            "orb": 6.441639617347903
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Pluto",
+            "aspect": "sextile",
+            "orb": 3.3544095275908887
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Chiron",
+            "aspect": "sextile",
+            "orb": 3.1915632032046517
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "North Node",
+            "aspect": "opposition",
+            "orb": 0.7610120520701287
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "South Node",
+            "aspect": "conjunction",
+            "orb": 0.7610120520701571
+          },
+          {
+            "planet_a": "Pluto",
+            "planet_b": "North Node",
+            "aspect": "trine",
+            "orb": 7.5007533332457115
+          },
+          {
+            "planet_a": "Pluto",
+            "planet_b": "Chiron",
+            "aspect": "conjunction",
+            "orb": 0.16284632438623703
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "Chiron",
+            "aspect": "trine",
+            "orb": 7.6635996576319485
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "South Node",
+            "aspect": "opposition",
+            "orb": 2.842170943040401e-14
+          }
+        ],
+        "sun_sign": "Capricorn",
+        "ascendant": "Aries",
+        "ascendant_degree": 24.287305086198064,
+        "mc": "Capricorn",
+        "mc_degree": 9.611087800284565
+      }
+    },
+    {
+      "date": "2024-06-21",
+      "time": "06:30",
+      "timezone": "Asia/Kolkata",
+      "time_status": "approximate",
+      "latitude": 12.9716,
+      "longitude": 77.5946,
+      "expected": {
+        "metadata": {
+          "calculation_version": "swiss-ephemeris-tropical-v1",
+          "ephemeris_version": "2.10.03",
+          "house_system": "placidus",
+          "data_quality": "standard"
+        },
+        "planets": [
+          {
+            "planet": "Sun",
+            "sign": "Cancer",
+            "degree": 0.1649559543411243,
+            "house": 12,
+            "retrograde": false
+          },
+          {
+            "planet": "Moon",
+            "sign": "Sagittarius",
+            "degree": 17.632904021479362,
+            "house": 6,
+            "retrograde": false
+          },
+          {
+            "planet": "Mercury",
+            "sign": "Cancer",
+            "degree": 7.86006494776062,
+            "house": 1,
+            "retrograde": false
+          },
+          {
+            "planet": "Venus",
+            "sign": "Cancer",
+            "degree": 4.640782846653977,
+            "house": 12,
+            "retrograde": false
+          },
+          {
+            "planet": "Mars",
+            "sign": "Taurus",
+            "degree": 8.736193332264556,
+            "house": 11,
+            "retrograde": false
+          },
+          {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "degree": 6.019591891206403,
+            "house": 11,
+            "retrograde": false
+          },
+          {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "degree": 19.364037567507637,
+            "house": 9,
+            "retrograde": false
+          },
+          {
+            "planet": "Uranus",
+            "sign": "Taurus",
+            "degree": 25.244335849710765,
+            "house": 11,
+            "retrograde": false
+          },
+          {
+            "planet": "Neptune",
+            "sign": "Pisces",
+            "degree": 29.896677994064476,
+            "house": 9,
+            "retrograde": false
+          },
+          {
+            "planet": "Pluto",
+            "sign": "Aquarius",
+            "degree": 1.5848059902161822,
+            "house": 7,
+            "retrograde": true
+          },
+          {
+            "planet": "North Node",
+            "sign": "Aries",
+            "degree": 12.423822787848742,
+            "house": 10,
+            "retrograde": true
+          },
+          {
+            "planet": "Chiron",
+            "sign": "Aries",
+            "degree": 22.99442962680961,
+            "house": 10,
+            "retrograde": false
+          },
+          {
+            "planet": "South Node",
+            "sign": "Libra",
+            "degree": 12.423822787848735,
+            "house": 4,
+            "retrograde": true
+          }
+        ],
+        "houses": [
+          {
+            "house": 1,
+            "sign": "Cancer",
+            "degree": 7.3420317157683
+          },
+          {
+            "house": 2,
+            "sign": "Leo",
+            "degree": 3.1347045143532597
+          },
+          {
+            "house": 3,
+            "sign": "Virgo",
+            "degree": 1.1429253856969126
+          },
+          {
+            "house": 4,
+            "sign": "Libra",
+            "degree": 2.526992881305148
+          },
+          {
+            "house": 5,
+            "sign": "Scorpio",
+            "degree": 5.671243856297082
+          },
+          {
+            "house": 6,
+            "sign": "Sagittarius",
+            "degree": 7.594637223713107
+          },
+          {
+            "house": 7,
+            "sign": "Capricorn",
+            "degree": 7.342031715768314
+          },
+          {
+            "house": 8,
+            "sign": "Aquarius",
+            "degree": 3.1347045143532455
+          },
+          {
+            "house": 9,
+            "sign": "Pisces",
+            "degree": 1.1429253856969126
+          },
+          {
+            "house": 10,
+            "sign": "Aries",
+            "degree": 2.526992881305146
+          },
+          {
+            "house": 11,
+            "sign": "Taurus",
+            "degree": 5.671243856297089
+          },
+          {
+            "house": 12,
+            "sign": "Gemini",
+            "degree": 7.594637223713121
+          }
+        ],
+        "aspects": [
+          {
+            "planet_a": "Sun",
+            "planet_b": "Mercury",
+            "aspect": "conjunction",
+            "orb": 7.695108993419495
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Venus",
+            "aspect": "conjunction",
+            "orb": 4.475826892312853
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Neptune",
+            "aspect": "square",
+            "orb": 0.26827796027663453
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Saturn",
+            "aspect": "square",
+            "orb": 1.7311335460282748
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "North Node",
+            "aspect": "trine",
+            "orb": 5.209081233630627
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Chiron",
+            "aspect": "trine",
+            "orb": 5.361525605330257
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "South Node",
+            "aspect": "sextile",
+            "orb": 5.209081233630627
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Venus",
+            "aspect": "conjunction",
+            "orb": 3.219282101106643
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 0.8761283845039358
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "North Node",
+            "aspect": "square",
+            "orb": 4.56375784008813
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "South Node",
+            "aspect": "square",
+            "orb": 4.563757840088115
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 4.095410485610579
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Neptune",
+            "aspect": "square",
+            "orb": 4.744104852589487
+          },
+          {
+            "planet_a": "Jupiter",
+            "planet_b": "Pluto",
+            "aspect": "trine",
+            "orb": 4.434785900990221
+          },
+          {
+            "planet_a": "Jupiter",
+            "planet_b": "South Node",
+            "aspect": "trine",
+            "orb": 6.404230896642332
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "Uranus",
+            "aspect": "sextile",
+            "orb": 5.880298282203114
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Neptune",
+            "aspect": "sextile",
+            "orb": 4.6523421443537245
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Pluto",
+            "aspect": "trine",
+            "orb": 6.340470140505431
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "Pluto",
+            "aspect": "sextile",
+            "orb": 1.6881279961517066
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "South Node",
+            "aspect": "opposition",
+            "orb": 0
+          }
+        ],
+        "sun_sign": "Cancer",
+        "ascendant": "Cancer",
+        "ascendant_degree": 7.3420317157683,
+        "mc": "Aries",
+        "mc_degree": 2.526992881305146
+      }
+    },
+    {
+      "date": "2000-01-01",
+      "time": "",
+      "timezone": "UTC",
+      "time_status": "unknown",
+      "latitude": 51.5,
+      "longitude": 0,
+      "expected": {
+        "metadata": {
+          "calculation_version": "swiss-ephemeris-tropical-v1",
+          "ephemeris_version": "2.10.03",
+          "house_system": "unavailable",
+          "data_quality": "standard"
+        },
+        "planets": [
+          {
+            "planet": "Sun",
+            "sign": "Capricorn",
+            "degree": 10.3689186985535,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Moon",
+            "sign": "Scorpio",
+            "degree": 13.323751218928464,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "degree": 1.8892770330247686,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Venus",
+            "sign": "Sagittarius",
+            "degree": 1.5657883870169371,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Mars",
+            "sign": "Aquarius",
+            "degree": 27.963302559285694,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Jupiter",
+            "sign": "Aries",
+            "degree": 25.253087822239806,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "degree": 10.395663477707863,
+            "house": null,
+            "retrograde": true
+          },
+          {
+            "planet": "Uranus",
+            "sign": "Aquarius",
+            "degree": 14.809186721196511,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Neptune",
+            "sign": "Aquarius",
+            "degree": 3.193011808289782,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "Pluto",
+            "sign": "Sagittarius",
+            "degree": 11.454777193605622,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "North Node",
+            "sign": "Leo",
+            "degree": 3.9540238603599107,
+            "house": null,
+            "retrograde": true
+          },
+          {
+            "planet": "Chiron",
+            "sign": "Sagittarius",
+            "degree": 11.61762351799186,
+            "house": null,
+            "retrograde": false
+          },
+          {
+            "planet": "South Node",
+            "sign": "Aquarius",
+            "degree": 3.954023860359939,
+            "house": null,
+            "retrograde": true
+          }
+        ],
+        "houses": [],
+        "aspects": [
+          {
+            "planet_a": "Sun",
+            "planet_b": "Moon",
+            "aspect": "sextile",
+            "orb": 2.954832520374964
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Saturn",
+            "aspect": "trine",
+            "orb": 0.026744779154370235
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Saturn",
+            "aspect": "opposition",
+            "orb": 2.928087741220594
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Uranus",
+            "aspect": "square",
+            "orb": 1.4854355022680465
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 3.9259744737390747
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Jupiter",
+            "aspect": "trine",
+            "orb": 6.6361892107849485
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Mars",
+            "aspect": "square",
+            "orb": 3.6024858277312433
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Neptune",
+            "aspect": "sextile",
+            "orb": 1.627223421272845
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "North Node",
+            "aspect": "trine",
+            "orb": 2.3882354733429736
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "South Node",
+            "aspect": "sextile",
+            "orb": 2.388235473343002
+          },
+          {
+            "planet_a": "Mars",
+            "planet_b": "Jupiter",
+            "aspect": "sextile",
+            "orb": 2.710214737045874
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "Uranus",
+            "aspect": "square",
+            "orb": 4.413523243488669
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "North Node",
+            "aspect": "square",
+            "orb": 6.44163961734796
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "South Node",
+            "aspect": "square",
+            "orb": 6.441639617347903
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Pluto",
+            "aspect": "sextile",
+            "orb": 3.3544095275908887
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Chiron",
+            "aspect": "sextile",
+            "orb": 3.1915632032046517
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "North Node",
+            "aspect": "opposition",
+            "orb": 0.7610120520701287
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "South Node",
+            "aspect": "conjunction",
+            "orb": 0.7610120520701571
+          },
+          {
+            "planet_a": "Pluto",
+            "planet_b": "North Node",
+            "aspect": "trine",
+            "orb": 7.5007533332457115
+          },
+          {
+            "planet_a": "Pluto",
+            "planet_b": "Chiron",
+            "aspect": "conjunction",
+            "orb": 0.16284632438623703
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "Chiron",
+            "aspect": "trine",
+            "orb": 7.6635996576319485
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "South Node",
+            "aspect": "opposition",
+            "orb": 2.842170943040401e-14
+          }
+        ],
+        "sun_sign": "Capricorn",
+        "ascendant": null,
+        "ascendant_degree": null,
+        "mc": null,
+        "mc_degree": null
+      }
+    },
+    {
+      "date": "2024-06-21",
+      "time": "12:00",
+      "timezone": "UTC",
+      "time_status": "exact",
+      "latitude": 75,
+      "longitude": 20,
+      "expected": {
+        "metadata": {
+          "calculation_version": "swiss-ephemeris-tropical-v1",
+          "ephemeris_version": "2.10.03",
+          "house_system": "whole_sign",
+          "data_quality": "high"
+        },
+        "planets": [
+          {
+            "planet": "Sun",
+            "sign": "Cancer",
+            "degree": 0.6021669458553731,
+            "house": 10,
+            "retrograde": false
+          },
+          {
+            "planet": "Moon",
+            "sign": "Sagittarius",
+            "degree": 23.743519562788208,
+            "house": 3,
+            "retrograde": false
+          },
+          {
+            "planet": "Mercury",
+            "sign": "Cancer",
+            "degree": 8.822749936519571,
+            "house": 10,
+            "retrograde": false
+          },
+          {
+            "planet": "Venus",
+            "sign": "Cancer",
+            "degree": 5.203834158279051,
+            "house": 10,
+            "retrograde": false
+          },
+          {
+            "planet": "Mars",
+            "sign": "Taurus",
+            "degree": 9.07113420406182,
+            "house": 8,
+            "retrograde": false
+          },
+          {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "degree": 6.122322347646573,
+            "house": 9,
+            "retrograde": false
+          },
+          {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "degree": 19.370551250216806,
+            "house": 6,
+            "retrograde": false
+          },
+          {
+            "planet": "Uranus",
+            "sign": "Taurus",
+            "degree": 25.267215047725927,
+            "house": 8,
+            "retrograde": false
+          },
+          {
+            "planet": "Neptune",
+            "sign": "Pisces",
+            "degree": 29.89946893854301,
+            "house": 6,
+            "retrograde": false
+          },
+          {
+            "planet": "Pluto",
+            "sign": "Aquarius",
+            "degree": 1.5759461673771398,
+            "house": 5,
+            "retrograde": true
+          },
+          {
+            "planet": "North Node",
+            "sign": "Aries",
+            "degree": 12.338803531587057,
+            "house": 7,
+            "retrograde": true
+          },
+          {
+            "planet": "Chiron",
+            "sign": "Aries",
+            "degree": 23.007917237652276,
+            "house": 7,
+            "retrograde": false
+          },
+          {
+            "planet": "South Node",
+            "sign": "Libra",
+            "degree": 12.338803531587047,
+            "house": 1,
+            "retrograde": true
+          }
+        ],
+        "houses": [
+          {
+            "house": 1,
+            "sign": "Libra",
+            "degree": 0
+          },
+          {
+            "house": 2,
+            "sign": "Scorpio",
+            "degree": 0
+          },
+          {
+            "house": 3,
+            "sign": "Sagittarius",
+            "degree": 0
+          },
+          {
+            "house": 4,
+            "sign": "Capricorn",
+            "degree": 0
+          },
+          {
+            "house": 5,
+            "sign": "Aquarius",
+            "degree": 0
+          },
+          {
+            "house": 6,
+            "sign": "Pisces",
+            "degree": 0
+          },
+          {
+            "house": 7,
+            "sign": "Aries",
+            "degree": 0
+          },
+          {
+            "house": 8,
+            "sign": "Taurus",
+            "degree": 0
+          },
+          {
+            "house": 9,
+            "sign": "Gemini",
+            "degree": 0
+          },
+          {
+            "house": 10,
+            "sign": "Cancer",
+            "degree": 0
+          },
+          {
+            "house": 11,
+            "sign": "Leo",
+            "degree": 0
+          },
+          {
+            "house": 12,
+            "sign": "Virgo",
+            "degree": 0
+          }
+        ],
+        "aspects": [
+          {
+            "planet_a": "Sun",
+            "planet_b": "Moon",
+            "aspect": "opposition",
+            "orb": 6.858647383067165
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Venus",
+            "aspect": "conjunction",
+            "orb": 4.601667212423678
+          },
+          {
+            "planet_a": "Sun",
+            "planet_b": "Neptune",
+            "aspect": "square",
+            "orb": 0.7026980073123923
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Saturn",
+            "aspect": "square",
+            "orb": 4.372968312571402
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Neptune",
+            "aspect": "square",
+            "orb": 6.155949375754801
+          },
+          {
+            "planet_a": "Moon",
+            "planet_b": "Chiron",
+            "aspect": "trine",
+            "orb": 0.7356023251359431
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Venus",
+            "aspect": "conjunction",
+            "orb": 3.6189157782405204
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 0.2483842675422494
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "North Node",
+            "aspect": "square",
+            "orb": 3.51605359506749
+          },
+          {
+            "planet_a": "Mercury",
+            "planet_b": "South Node",
+            "aspect": "square",
+            "orb": 3.5160535950674756
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Mars",
+            "aspect": "sextile",
+            "orb": 3.8673000457827698
+          },
+          {
+            "planet_a": "Venus",
+            "planet_b": "Neptune",
+            "aspect": "square",
+            "orb": 5.304365219736042
+          },
+          {
+            "planet_a": "Jupiter",
+            "planet_b": "Pluto",
+            "aspect": "trine",
+            "orb": 4.546376180269419
+          },
+          {
+            "planet_a": "Jupiter",
+            "planet_b": "South Node",
+            "aspect": "trine",
+            "orb": 6.216481183940473
+          },
+          {
+            "planet_a": "Saturn",
+            "planet_b": "Uranus",
+            "aspect": "sextile",
+            "orb": 5.89666379750912
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Neptune",
+            "aspect": "sextile",
+            "orb": 4.632253890817083
+          },
+          {
+            "planet_a": "Uranus",
+            "planet_b": "Pluto",
+            "aspect": "trine",
+            "orb": 6.308731119651213
+          },
+          {
+            "planet_a": "Neptune",
+            "planet_b": "Pluto",
+            "aspect": "sextile",
+            "orb": 1.6764772288341305
+          },
+          {
+            "planet_a": "North Node",
+            "planet_b": "South Node",
+            "aspect": "opposition",
+            "orb": 0
+          }
+        ],
+        "sun_sign": "Cancer",
+        "ascendant": "Libra",
+        "ascendant_degree": 8.364771594431488,
+        "mc": "Cancer",
+        "mc_degree": 18.630601441329915
+      }
+    }
+  ],
+  "generated": "2026-09-22",
+  "native": "Swiss 2.10.03 pinned KRIPA data; shared engine intentionally isolates adapter/assembly differences",
+  "review_status": "upstream regression; not independent astronomy validation",
+  "source": "user-supplied astro-backend-main 2.zip; internal/astrology SwissEngine; run in isolated temporary module without modifying Astrel",
+  "source_swiss_go_sha256": "e4ddde649e740ffbbf3fccda2b2e8d0cb075065b0b61de3894cd2738bee5aedd"
+}

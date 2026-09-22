@@ -36,7 +36,7 @@ func (r Request) Resolve() (time.Time, bool, error) {
 		return time.Time{}, false, fmt.Errorf("invalid coordinates")
 	}
 	loc, err := time.LoadLocation(r.Timezone)
-	if err != nil || r.Timezone == "" {
+	if err != nil || (r.Timezone == "" || r.Timezone == "Local") {
 		return time.Time{}, false, fmt.Errorf("invalid IANA timezone")
 	}
 	date, err := time.Parse("2006-01-02", r.Date)
