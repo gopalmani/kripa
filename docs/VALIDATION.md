@@ -23,7 +23,7 @@ installed locally. No application-VM access/deployment was attempted.
 - `python scripts/smoke.py --url http://127.0.0.1:18080 --schema`: passed live local HTTP and response-schema validation for both chart time modes, Panchang, health, metadata, metrics and representative errors. Local server exited 0 on SIGTERM. An initial connection probe retried while startup completed.
 - `make bench`: passed three repetitions of uncached chart/Panchang domain and warm HTTP-handler benchmarks.
 - `go run ./cmd/latency -n 200 -c 4` and `GOMAXPROCS=1 go run ./cmd/latency -n 100 -c 1`, with the ephemeris environment set: passed; results below/in JSON.
-- Local container build: unavailable (`docker: command not found`). Current workflow adds native Linux AMD64 and Linux ARM64 build/test/container/schema-smoke/SIGTERM jobs. Their results must be read from the pushed commit, not inferred from local tests.
+- Local container build: unavailable (`docker: command not found`). Linux AMD64 and Linux ARM64 build/test/container/schema-smoke/SIGTERM jobs passed for c7019f2 in [run 35718596027](https://github.com/gopalmani/kripa/actions/runs/35718596027). Both jobs completed successfully; these are native GitHub-hosted runners, not emulation or the intended VM.
 
 No production correctness or VM latency claim follows from these checks.
 
@@ -151,3 +151,25 @@ lahiri_upper_limb_v1 profile. Display sunrise-day intervals and preview status;
 do not infer festivals/vrats or religious recommendations. Test midnight/next-day
 transitions and add “Panchang powered by KRIPA · Source code”. No Firebase,
 Razorpay, booking or provider workflows belong in KRIPA.
+
+
+## Delivered CI evidence and historical timestamp correction
+
+`c7019f254773d6cae6b4c9c779e596823f1b39f1` was pushed normally to `main` and
+verified against the remote. [Actions run 35718596027](https://github.com/gopalmani/kripa/actions/runs/35718596027)
+passed both `ubuntu-24.04` (AMD64) and `ubuntu-24.04-arm` (ARM64): pinned native
+build, vet/race tests, benchmarks/latency, OpenAPI validator, container build,
+authenticated actual-response schema smoke, SIGTERM exit 0 and clean module/format
+checks. Per-architecture validation artifacts are attached to that run.
+
+The subsequent historical timestamp test first **failed** on 1900-01-01 in
+Asia/Kolkata: Go's RFC 3339 serialization discarded the seconds component of the
+historical offset. The fix emits UTC for subminute offsets while keeping vara
+based on the requested timezone. Modern whole-minute offsets are unchanged.
+The regression and `make verify` pass after the fix; source expectations were not
+changed to hide the error. Follow-up pushes use the same two-architecture matrix;
+consult the commit's Actions run for its exact result.
+
+240 direct native sessions across 80 goroutines also pass under Go's race
+detector, independently of HTTP cache/coalescing. This is deterministic isolation
+evidence, not proof of C memory race freedom.

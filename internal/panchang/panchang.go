@@ -110,9 +110,9 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 		if !(rise < set && set < nextRise && nextRise-rise < 2) {
 			return ephemeris.ErrNoEvent
 		}
-		out.Sunrise = s.Time(rise).In(loc)
-		out.Sunset = s.Time(set).In(loc)
-		out.NextSunrise = s.Time(nextRise).In(loc)
+		out.Sunrise = timestamp(s.Time(rise), loc)
+		out.Sunset = timestamp(s.Time(set), loc)
+		out.NextSunrise = timestamp(s.Time(nextRise), loc)
 		for _, ev := range []struct {
 			rise bool
 			dst  **time.Time
@@ -128,7 +128,7 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 				return err
 			}
 			if jd >= start && jd < end {
-				t := s.Time(jd).In(loc)
+				t := timestamp(s.Time(jd), loc)
 				*ev.dst = &t
 			}
 		}
@@ -146,7 +146,7 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 		if out.Tithi[0].Index > 15 {
 			out.Paksha = "Krishna"
 		}
-		weekday := int(out.Sunrise.Weekday())
+		weekday := int(out.Sunrise.In(loc).Weekday())
 		out.Vaar = weekdays[weekday]
 		out.RahuKalam = period(out.Sunrise, out.Sunset, []int{8, 2, 7, 5, 6, 4, 3}[weekday])
 		out.Yamaganda = period(out.Sunrise, out.Sunset, []int{5, 4, 3, 2, 1, 7, 6}[weekday])
@@ -221,13 +221,13 @@ func transitions(ctx context.Context, s ephemeris.Session, kind string, start, e
 	}
 	out := make([]Segment, 0, 4)
 	cursor := start
-	active := s.Time(start).In(loc)
+	active := timestamp(s.Time(start), loc)
 	for i := 0; i < 8; i++ {
 		boundary, index, err := nextBoundary(ctx, s, kind, cursor, width)
 		if err != nil {
 			return nil, err
 		}
-		finish := s.Time(boundary).In(loc)
+		finish := timestamp(s.Time(boundary), loc)
 		out = append(out, Segment{index, limbName(kind, index), active, finish})
 		if boundary >= end {
 			return out, nil
@@ -274,4 +274,15 @@ func limbName(kind string, index int) string {
 		}
 		return paksha + " " + tithis[(index-1)%15]
 	}
+}
+
+// RFC 3339 cannot represent historical timezone offsets containing seconds.
+// Use UTC for those instants so JSON serialization cannot silently shift them.
+func timestamp(t time.Time, loc *time.Location) time.Time {
+	local := t.In(loc)
+	_, offset := local.Zone()
+	if offset%60 != 0 {
+		return t.UTC()
+	}
+	return local
 }

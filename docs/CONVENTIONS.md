@@ -26,7 +26,7 @@ Sunrise/sunset use Swiss rise_trans: upper limb, refraction enabled, observer he
 
 The exact response coverage is `[sunrise, next_sunrise)`. Every limb array begins at sunrise (not at the actual preceding transition), includes all subsequent transitions before next sunrise, and retains the final segment's actual end even if it is outside coverage. Segments are half-open `[active_from, ends_at)`. Clip the final segment to `next_sunrise` when drawing the daily interval. At an exact boundary select the next segment. Rounded timestamps can hide subsecond differences.
 
-Transitions are bracketed over two days, then bisected to ≤0.1 seconds; timestamps round to the nearest second and include the requested location's UTC offset. Multiple events and transitions past midnight are retained. There is no instant input: within coverage, select the segment containing the desired instant. `paksha_at_sunrise` refers only to the first tithi: indices 1–15 Shukla, 16–30 Krishna.
+Transitions are bracketed over two days, then bisected to ≤0.1 seconds; timestamps round to the nearest second and include the requested location's UTC offset. Historical offsets containing seconds are emitted in UTC (`Z`), because RFC 3339 cannot encode subminute offsets; `timezone` still identifies the requested zone and vara uses the local sunrise weekday. Multiple events and transitions past midnight are retained. There is no instant input: within coverage, select the segment containing the desired instant. `paksha_at_sunrise` refers only to the first tithi: indices 1–15 Shukla, 16–30 Krishna.
 
 `vaar` is the weekday of the local sunrise, used for this sunrise-to-sunrise interval. The civil date changes at midnight independently. Moonrise/moonset instead cover the local civil day `[midnight, next midnight)`; null means no event in that interval. Timezones changing their midnight/date boundary may reject a nonexistent date; not all exotic historical civil-time changes are validated.
 
@@ -65,3 +65,7 @@ explicit migration for input-correctness fixes, not a zodiac/profile change.
 Environment tokens must contain at least 32 characters without ASCII whitespace;
 secret-file surrounding whitespace is trimmed as before. Unset native
 `SE_EPHE_PATH` and configure only `SWISS_EPHEMERIS_PATH`.
+
+Historical timestamp migration: 1900-era subminute timezone offsets previously
+lost their seconds component during JSON serialization. Those event timestamps
+now use `Z` to preserve the instant; modern whole-minute offsets are unchanged.

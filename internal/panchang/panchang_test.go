@@ -173,3 +173,26 @@ func TestUSNOSunriseSunset(t *testing.T) {
 		t.Fatalf("USNO solar event discrepancy: %s %s", got.Sunrise, got.Sunset)
 	}
 }
+
+func TestHistoricalTimestampRoundtrip(t *testing.T) {
+	p := native(t)
+	r := Request{Date: "1900-01-01", Timezone: "Asia/Kolkata", Latitude: 12.9716, Longitude: 77.5946, Profile: Profile}
+	value, err := Calculate(context.Background(), p, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(value)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Result
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if !decoded.Sunrise.Equal(value.Sunrise) || !decoded.Tithi[0].EndsAt.Equal(value.Tithi[0].EndsAt) {
+		t.Fatalf("historical offset lost seconds in JSON: sunrise %s became %s", value.Sunrise, decoded.Sunrise)
+	}
+	if value.Vaar != "Somavara" {
+		t.Fatalf("changed local sunrise weekday: %s", value.Vaar)
+	}
+}
