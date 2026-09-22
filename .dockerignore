@@ -1,0 +1,7 @@
+.git
+.deps
+bin
+.env
+.env.*
+secrets
+*.log
