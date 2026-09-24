@@ -15,8 +15,30 @@ Date/location-specific daily-page retrieval failed through the browsing tool and
 direct HTTP returned 403. A search result for a Bengaluru Bengali-calendar page
 showed 21 September, but opening the same URL returned Washington on 23 September.
 That mismatch disqualifies the snippet as a golden fixture. No access restriction
-was bypassed or unverified time promoted into passing tests. Measured Drik
-agreement remains unestablished. Drik is not a runtime dependency or data feed.
+was bypassed or that unverified snippet promoted into passing tests. Drik is not
+a runtime dependency or data feed.
+
+## Limited measured spot check
+
+Following the public page's astronomy link yielded a date-verified
+[Washington astronomy page](https://www.drikpanchang.com/astronomy/sunrisemoonrise/daily/sunrisemoonrise.html?date=23/09/2026)
+with coordinates 38.89511, -77.03637 and America/New_York timezone. The same
+inputs were run through KRIPA. Signed differences from its minute-rounded
+observations: sunrise -8s, sunset +23s, next sunrise -14s, moonrise -8s, moonset
+-41s. These five events are preserved in a provenance-bearing fixture and checked
+with a 120s sanity tolerance. Source altitude is 6m versus KRIPA sea-level;
+effective atmospheric settings are unknown. This is one date outside India, not
+proof of India-wide accuracy or religious-calendar agreement.
+
+The [Bengali daily page](https://www.drikpanchang.com/bengali/bengali-day-panjika.html?date=23/09/2026)
+for the same city/date differs from that astronomy page. Compared with its
+minute values, KRIPA ends Dvadashi/Balava 60s later, Dhanishtha 22s later,
+Dhriti 19s earlier, and Kaulava 59s later. More importantly, KRIPA has eight
+seconds of Sukarma after sunrise before Dhriti; the page lists Dhriti. Its
+moonrise differs by about four minutes, and moonset is the following date,
+not KRIPA's civil-day event. Effective religious-page settings are not confirmed.
+These unresolved differences are observations, NOT accepted passing fixtures.
+Do not tune constants or suppress the boundary segment to imitate one page.
 
 | Capability | KRIPA now | Gap |
 | --- | --- | --- |

@@ -65,3 +65,10 @@ Prometheus caps: .10 CPU, 192 MB, two concurrent queries. These caps are not a
 reservation or latency guarantee. Native C work serializes and cannot be killed
 mid-call. Base-image tags/OS packages are mutable; rebuilds are not byte-identical.
 Retain release source bundles and image hashes and regularly scan/rebuild images.
+
+Reproduce a bounded VM-side mixed check using `KRIPA_API_TOKEN_FILE=... python3
+scripts/http-load.py --seconds 60 --rps 5`. It alternates uncached charts,
+varying-date Panchang and repeated Panchang, caps four inflight requests and
+includes all timed attempts in percentiles. Cold means application cache miss,
+not cold OS/native startup; rerunning the same dates can warm that case, so
+inspect reported cache hits. Report failures/missed scheduling, not just latency.
