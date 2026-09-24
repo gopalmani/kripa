@@ -53,6 +53,7 @@ type Server struct {
 	calcNanos       atomic.Uint64
 	queueNanos      atomic.Uint64
 	nativeFailures  atomic.Uint64
+	authRejected    atomic.Uint64
 }
 
 func New(engine ephemeris.Provider, cfg Config) *Server {
@@ -121,6 +122,7 @@ func (s *Server) Handler() http.Handler {
 		}()
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("X-Powered-By", "KRIPA")
 		w.Header().Set("Link", "<"+SourceURL+">; rel=\"source\"")
 		// Avoid ServeMux's plain-text 404/405 responses for this JSON API.
 		methods := map[string]string{"/health/live": "GET", "/health/ready": "GET", "/v1/meta": "GET", "/metrics": "GET", "/v1/charts": "POST", "/v1/panchang": "POST"}
@@ -146,6 +148,7 @@ func (s *Server) protected(next http.Handler) http.Handler {
 			actual := sha256.Sum256([]byte(r.Header.Get("Authorization")))
 			expected := sha256.Sum256([]byte("Bearer " + s.cfg.Token))
 			if subtle.ConstantTimeCompare(actual[:], expected[:]) != 1 {
+				s.authRejected.Add(1)
 				w.Header().Set("WWW-Authenticate", "Bearer")
 				writeError(w, 401, "unauthorized")
 				return
@@ -254,7 +257,7 @@ func (s *Server) calculate(kind int) http.Handler {
 			}
 			s.duration[kind][bucket].Add(1)
 			s.durationSum[kind].Add(uint64(elapsed))
-			s.cfg.Logger.Debug().Str("request_id", w.Header().Get("X-Request-ID")).Str("method", r.Method).Str("route", route).Int("status", status).Bool("cache_hit", cached).Dur("duration_ms", elapsed).Msg("request")
+			s.cfg.Logger.Info().Str("request_id", w.Header().Get("X-Request-ID")).Str("method", r.Method).Str("route", route).Int("status", status).Bool("cache_hit", cached).Dur("duration_ms", elapsed).Msg("request")
 		}()
 		fail := func(code int, msg string) { status = code; writeError(w, code, msg) }
 		select {
@@ -354,6 +357,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 }
 func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	_, _ = fmt.Fprintf(w, "# TYPE kripa_auth_rejections_total counter\nkripa_auth_rejections_total %d\n", s.authRejected.Load())
 	_, _ = fmt.Fprintln(w, "# TYPE kripa_requests_total counter\n# TYPE kripa_errors_total counter\n# TYPE kripa_request_duration_seconds histogram")
 	for k, route := range []string{"charts", "panchang"} {
 		_, _ = fmt.Fprintf(w, "kripa_requests_total{route=%q} %d\nkripa_errors_total{route=%q} %d\n", route, s.requests[k].Load(), route, s.failures[k].Load())

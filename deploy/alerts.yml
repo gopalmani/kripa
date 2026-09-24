@@ -1,0 +1,20 @@
+groups:
+  - name: kripa
+    rules:
+      - alert: KripaUnavailable
+        expr: up{job="kripa"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations: {summary: "KRIPA metrics target unavailable"}
+      - alert: KripaCalculationErrors
+        expr: increase(kripa_native_failures_total[5m]) > 0
+        labels: {severity: warning}
+        annotations: {summary: "KRIPA native calculation failures"}
+      - alert: KripaOverload
+        expr: increase(kripa_overload_rejections_total[5m]) > 0
+        labels: {severity: warning}
+        annotations: {summary: "KRIPA rejected work at its concurrency limit"}
+      - alert: KripaUnauthorized
+        expr: increase(kripa_auth_rejections_total[5m]) > 5
+        labels: {severity: warning}
+        annotations: {summary: "Repeated KRIPA authentication failures"}

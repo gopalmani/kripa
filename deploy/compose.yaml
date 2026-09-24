@@ -1,0 +1,61 @@
+name: kripa-private
+services:
+  kripa:
+    image: ${KRIPA_IMAGE:?set immutable tested image}
+    ports: ["127.0.0.1:8088:8080"]
+    environment:
+      KRIPA_LISTEN_ADDR: 0.0.0.0:8080
+      KRIPA_API_TOKEN_FILE: /run/secrets/kripa_api_token
+      KRIPA_MAX_INFLIGHT: "8"
+      KRIPA_CACHE_ENTRIES: "512"
+      KRIPA_REQUEST_TIMEOUT: 2s
+      GOMAXPROCS: "1"
+      GOMEMLIMIT: 128MiB
+      LOG_LEVEL: info
+    secrets: [kripa_api_token]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 192m
+    cpus: 0.25
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    ports: ["127.0.0.1:9098:9090"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --storage.tsdb.retention.size=256MB
+      - --query.max-concurrency=2
+      - --query.max-samples=100000
+    environment: {GOMAXPROCS: "1", GOMEMLIMIT: 128MiB}
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerts.yml:/etc/prometheus/alerts.yml:ro
+      - metrics:/prometheus
+    secrets: [kripa_api_token]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 192m
+    cpus: 0.10
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+networks:
+  private:
+    internal: true
+volumes:
+  metrics:
+secrets:
+  kripa_api_token:
+    file: ./secrets/kripa_api_token

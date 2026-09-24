@@ -6,6 +6,16 @@ on:
 permissions:
   contents: read
 jobs:
+  secrets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go run github.com/zricethezav/gitleaks/v8@v8.30.1 git --redact --no-banner .
   verify:
     strategy:
       fail-fast: false
@@ -46,6 +56,10 @@ jobs:
           /tmp/schema-check/bin/python -m openapi_spec_validator api/openapi.yaml
       - name: Build container
         run: docker build --build-arg VERSION=${{ github.sha }} -t kripa:ci .
+      - name: Validate monitoring configuration
+        run: |
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/deploy:/etc/prometheus:ro" prom/prometheus:v3.14.0 check config --syntax-only /etc/prometheus/prometheus.yml
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/deploy:/etc/prometheus:ro" prom/prometheus:v3.14.0 check rules /etc/prometheus/alerts.yml
       - name: Smoke container and graceful shutdown
         run: |
           export KRIPA_API_TOKEN=$(openssl rand -hex 32)
@@ -69,5 +83,21 @@ jobs:
             latency-results.json
             latency-single-cpu.json
             .deps/ephemeris.sha256
+      - name: Export verified ARM64 deployment image
+        if: matrix.runner == 'ubuntu-24.04-arm' && github.event_name != 'pull_request'
+        run: |
+          docker tag kripa:ci kripa:${{ github.sha }}
+          docker save kripa:${{ github.sha }} | gzip > kripa-arm64.tar.gz
+          sha256sum kripa-arm64.tar.gz > kripa-arm64.tar.gz.sha256
+          sh scripts/source-bundle.sh
+      - uses: actions/upload-artifact@v4
+        if: matrix.runner == 'ubuntu-24.04-arm' && github.event_name != 'pull_request'
+        with:
+          name: kripa-arm64-image
+          path: |
+            kripa-arm64.tar.gz
+            kripa-arm64.tar.gz.sha256
+            bin/kripa-source-*.tar.gz
+          retention-days: 14
       - name: Enforce committed formatting and module lock
         run: git diff --exit-code

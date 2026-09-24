@@ -6,6 +6,9 @@ KRIPA is a runnable, standalone Go service for tropical birth charts and locatio
 
 ## Implemented scope
 
+See [private operations](docs/OPERATIONS.md), [Drik comparison](docs/DRIK_COMPARISON.md)
+and [corresponding-source build](docs/SOURCE_BUILD.md) for this deployment phase.
+
 - `POST /v1/charts`: tropical planets, true nodes, Chiron, retrograde flags, houses, angles and major aspects; no chart cache.
 - `POST /v1/panchang`: sunrise/sunset, civil-day moonrise/moonset, sunrise vara and paksha, tithi/nakshatra/yoga/karana transitions, Rahu Kalam, Yamaganda and daytime Gulika.
 - Health, metadata and Prometheus metrics; zerolog JSON logs; bounded concurrency, deadlines, strict JSON and an 8 KiB body limit.

@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+rule_files: [/etc/prometheus/alerts.yml]
+scrape_configs:
+  - job_name: kripa
+    scrape_timeout: 5s
+    sample_limit: 200
+    authorization:
+      type: Bearer
+      credentials_file: /run/secrets/kripa_api_token
+    static_configs:
+      - targets: [kripa:8080]
