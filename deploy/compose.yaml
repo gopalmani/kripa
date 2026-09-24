@@ -13,7 +13,7 @@ services:
       GOMEMLIMIT: 128MiB
       LOG_LEVEL: info
     secrets: [kripa_api_token]
-    networks: [private]
+    networks: [runtime]
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
@@ -40,7 +40,7 @@ services:
       - ./alerts.yml:/etc/prometheus/alerts.yml:ro
       - metrics:/prometheus
     secrets: [kripa_api_token]
-    networks: [private]
+    networks: [runtime]
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
@@ -52,8 +52,10 @@ services:
       driver: json-file
       options: {max-size: "5m", max-file: "2"}
 networks:
-  private:
-    internal: true
+  runtime:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
 volumes:
   metrics:
 secrets:

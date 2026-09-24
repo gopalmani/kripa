@@ -17,7 +17,9 @@ Actual host inventory and credentials stay outside this public repository.
    readiness succeeds, Prometheus target is UP, and existing services are healthy.
 
 Only loopback ports 8088 (API) and 9098 (Prometheus) are published. The dedicated
-internal Docker network has no outbound routing. Later approved consumers can
+Docker bridge isolates KRIPA from other service networks. Outbound access is
+possible; this is inbound-private, not an egress-denied sandbox. Docker 29 does
+not publish loopback ports for internal-only networks. Later approved consumers can
 join it and use `http://kripa:8080` with a token. Localhost inside a consumer
 container does not refer to KRIPA. No public proxy or consumer change is included.
 
