@@ -20,6 +20,35 @@ a runtime dependency or data feed.
 
 ## Limited measured spot check
 
+### Bengaluru integration observation, 24 September
+
+The [city-specific daily page](https://www.drikpanchang.com/panchang/day-panchang.html?geoname-id=1277333)
+became readable without the date parameter on 24 September 2026; both title
+and displayed date/city were checked. This dynamic URL must not be assumed to
+preserve today's date on subsequent retrieval. With BB's Bengaluru coordinates
+12.9716, 77.5946 and Asia/Kolkata, KRIPA produced these signed differences from
+the page's minute-valued observations:
+
+| Event | Drik displayed local time | KRIPA | Difference |
+| --- | --- | --- | ---: |
+| Sunrise | 06:09 | 06:08:47 | -13s |
+| Sunset | 18:14 | 18:14:27 | +27s |
+| Trayodashi ends | 23:18 | 23:18:56 | +56s |
+| Dhanishtha ends | 10:35 | 10:35:22 | +22s |
+| Dhriti ends | 15:55 | 15:54:41 | -19s |
+| Kaulava ends | 11:09 | 11:09:59 | +59s |
+| Taitila ends | 23:18 | 23:18:56 | +56s |
+| Moonrise | 16:43 | 16:39:19 | -221s |
+
+Drik's moonset is 04:41 on **25 September**; KRIPA's requested civil-day event
+is 03:54:45 on **24 September**. Those are not comparable events. Source city
+is verified but its exact coordinates, effective lunar rise convention and
+atmosphere are not. These are documented observations, not a new accepted
+golden fixture. The moonrise discrepancy needs convention-level investigation;
+do not add a fixed four-minute correction. Full religious parity remains open.
+
+### Washington astronomy reference
+
 Following the public page's astronomy link yielded a date-verified
 [Washington astronomy page](https://www.drikpanchang.com/astronomy/sunrisemoonrise/daily/sunrisemoonrise.html?date=23/09/2026)
 with coordinates 38.89511, -77.03637 and America/New_York timezone. The same
