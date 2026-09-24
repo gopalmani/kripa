@@ -90,7 +90,7 @@ KRIPA_VERSION=$(git rev-parse HEAD) docker compose build
 docker compose up -d
 ```
 
-Compose publishes only `127.0.0.1:8088`, mounts a token secret, runs non-root with a read-only filesystem, drops capabilities and limits memory to 256 MB. The multi-stage image contains the native executable, timezone data embedded by Go, three ephemeris files and licence notices. Linux AMD64 and ARM64 are targets; consult validation for actual tested architectures. No VM deployment is included. Start with one CPU and monitor queue pressure, memory and rejection rate before tuning concurrency.
+The root Compose example publishes only `127.0.0.1:8088`, mounts a token secret, runs non-root with a read-only filesystem, drops capabilities and limits memory to 256 MB. The multi-stage image contains the native executable, timezone data embedded by Go, three ephemeris files and licence notices. Both Linux architectures passed CI. The separate `deploy/compose.yaml` is the tested private-VM configuration: .25 CPU/192 MB for the API, plus private Prometheus. See [operations](docs/OPERATIONS.md) and [live evidence](docs/VALIDATION.md).
 
 ## Source, licensing and contribution
 

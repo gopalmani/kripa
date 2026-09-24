@@ -1,4 +1,60 @@
-# Validation record — 2026-09-22
+# Validation record
+
+## Private live release — 24 September 2026
+
+Deployed revision `c555ed7012e3af526a2ca7fbddacb84790c38d18`, release
+[v0.1.0-preview.1](https://github.com/gopalmani/kripa/releases/tag/v0.1.0-preview.1).
+Both Linux architecture jobs and full-history secret scan passed in
+[CI 35946652700](https://github.com/gopalmani/kripa/actions/runs/35946652700).
+The release contains a corresponding-source bundle, independently unpacked and
+built with GOPROXY=off and vendored dependencies. Deployed ARM64 image ID:
+`sha256:255d57926b6bd8581ba9501cfc45dae3934b2c8c95f07ce441f0f95d81afcaa9`.
+Build toolchain: Go 1.26.8. govulncheck binary scan found no vulnerabilities;
+this is not an OS-package or native-C vulnerability certification. A separate
+source scan noted an unused Windows-only x/sys advisory (GO-2026-5024), not a
+called dependency on the deployed Linux platform.
+
+Authenticated live smoke passed charts (exact and unknown time), Panchang,
+readiness, metadata, metrics and validation errors. Unauthenticated protected
+routes returned 401. Live polar no-sunrise and DST gap/overlap cases returned 422.
+Final revision was read back from /v1/meta. No consumer integration was changed.
+Both existing backends remained healthy after deployment.
+
+Docker 29.8.1 did not publish loopback ports on an internal-only network. The
+corrected dedicated bridge publishes API and monitoring only on 127.0.0.1;
+both public-address port probes failed. This allows outbound connectivity, not
+an egress-denied sandbox. Other service networks/proxy were not modified.
+
+Prometheus target UP, four alert rules loaded, queryable usage series, and eleven
+historical samples retained across an explicit monitoring-container restart were
+verified. Live logs passed synthetic birth-input/coordinate/token marker checks.
+Logs are rotated; metrics persist for seven days subject to storage limits.
+No external alert delivery or tracing is configured. See OPERATIONS.md.
+
+Final-image VM-side HTTP load: synthetic requests at 5 RPS for 60 seconds, four
+maximum inflight, 300 completed, zero failures/missed slots. API .25 CPU/192 MB,
+GOMAXPROCS=1, eight admission slots; existing services and Prometheus running.
+The three workloads interleave equally; all timed attempts are included.
+
+| Workload | Requests | Cache hits | p50 ms | p95 ms | p99 ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Charts | 100 | 0 | 2.017 | 2.748 | 3.311 |
+| Varying-date Panchang | 100 | 0 | 5.695 | 6.807 | 11.306 |
+| Repeated Panchang | 100 | 100 | 1.404 | 2.583 | 3.070 |
+
+Reproduce with scripts/http-load.py and a protected token file. These are VM
+loopback latencies under this modest workload, not public-network or saturation
+claims. Application-cold does not mean cold OS/native startup. Representative
+idle snapshots: API ~8 MB and monitoring ~31 MB; these are not memory maxima.
+
+The new Drik astronomy fixture passed five minute-rounded rise/set checks with
+observed absolute differences of 8–41 seconds for one Washington date. This
+does not certify India-wide or religious-calendar parity. Near-sunrise yoga and
+other religious-page differences remain unresolved; see DRIK_COMPARISON.md.
+Panchang remains astronomical_preview. No private host inventory or credentials
+are included in the release or this public report.
+
+## Historical audit — 22 September 2026
 
 ## Repository and environment
 

@@ -1,5 +1,14 @@
 # Standalone KRIPA audit plan
 
+## Current phase — 24 September 2026
+
+Private service deployment is complete at c555ed7; see VALIDATION.md and
+OPERATIONS.md. Persistent metrics, rotated private logs, source release,
+multi-architecture CI, VM smoke/load and a limited Drik astronomy comparison
+are verified. Consumer integrations and religious-calendar approval remain
+deferred. The following table records the earlier coding-only audit, not the
+current deployment state.
+
 Baseline: `main` at `f453ce7` (2026-09-22), clean tree, origin
 `https://github.com/gopalmani/kripa.git`. Existing history is retained. This audit
 changes KRIPA only; no VM deployment or consumer/infrastructure changes.
@@ -35,7 +44,7 @@ changes KRIPA only; no VM deployment or consumer/infrastructure changes.
 
 - [ ] Independent position/angle and sunrise references across historical/future dates and boundary-heavy India-wide cases; explain all convention differences.
 - [ ] Calendar-specialist review of core limbs and daytime conventions; independently sourced near-sunrise and near-midnight transition cases.
-- [ ] Intended ARM64 VM acceptance at documented CPU/RAM, sustained duration, realistic input diversity and target concurrency. A short laptop run is not acceptance.
+- [x] Bounded ARM64 VM acceptance: 60-second mixed HTTP check at 5 RPS, documented quotas/input diversity/cache state, zero failures. Saturation/capacity certification remains out of scope.
 - [ ] Bit-for-bit container reproducibility: pin base-image digests/apt snapshots and toolchain artifacts for a release. Current native source/data and Go modules are pinned; OS tags remain mutable.
 - [ ] Later Astrel adapter integration with full product-level regression suite; separate authorization/task.
 - [ ] Later BrahminBooking daily-Panchang client integration retaining preview semantics; separate task.
