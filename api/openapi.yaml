@@ -712,10 +712,14 @@ components:
           type: object
           properties:
             abhijit:
-              allOf:
-              - $ref: '#/components/schemas/Window'
+              type: object
               nullable: true
-              description: Omitted (null) on Wednesdays.
+              description: Null on Wednesdays.
+              properties:
+                start: {type: string, format: date-time}
+                end: {type: string, format: date-time}
+              required: [start, end]
+              additionalProperties: false
             brahma:
               $ref: '#/components/schemas/Window'
           required: [abhijit, brahma]
