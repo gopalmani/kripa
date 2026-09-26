@@ -53,6 +53,7 @@ type Result struct {
 	RahuKalam          Window     `json:"rahu_kalam"`
 	Yamaganda          Window     `json:"yamaganda"`
 	Gulika             Window     `json:"gulika"`
+	Calendar           Calendar   `json:"calendar"`
 	Unsupported        []string   `json:"unsupported"`
 	Conventions        []string   `json:"conventions"`
 }
@@ -79,7 +80,7 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 	if err != nil {
 		return Result{}, err
 	}
-	out := Result{Date: r.Date, Timezone: r.Timezone, Latitude: r.Latitude, Longitude: r.Longitude, Profile: Profile, CalculationVersion: Version, EphemerisVersion: p.Version(), ReviewStatus: "astronomical_preview", Unsupported: []string{"lunar_months", "regional_festivals", "vrats", "personalized_muhurta"}, Conventions: []string{"Lahiri sidereal zodiac", "Apparent geocentric ecliptic positions", "Upper-limb sunrise with refraction", "Sea-level observer; pressure 1013.25 hPa; temperature 15 C", "Panchang day: sunrise to next sunrise", "Moonrise/moonset: requested civil day; null means no event", "Transitions solved numerically to 0.1 seconds; timestamps rounded to nearest second", "Calendar and religious review pending"}}
+	out := Result{Date: r.Date, Timezone: r.Timezone, Latitude: r.Latitude, Longitude: r.Longitude, Profile: Profile, CalculationVersion: Version, EphemerisVersion: p.Version(), ReviewStatus: "astronomical_preview", Unsupported: []string{"kshaya_masa", "regional_calendar_variants", "vrat_parana", "personalized_muhurta"}, Conventions: []string{"Lahiri sidereal zodiac", "Apparent geocentric ecliptic positions", "Upper-limb sunrise with refraction", "Sea-level observer; pressure 1013.25 hPa; temperature 15 C", "Panchang day: sunrise to next sunrise", "Moonrise/moonset: requested civil day; null means no event", "Transitions solved numerically to 0.1 seconds; timestamps rounded to nearest second", "Calendar and religious review pending"}}
 	err = p.WithSession(ctx, func(s ephemeris.Session) error {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -151,7 +152,8 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 		out.RahuKalam = period(out.Sunrise, out.Sunset, []int{8, 2, 7, 5, 6, 4, 3}[weekday])
 		out.Yamaganda = period(out.Sunrise, out.Sunset, []int{5, 4, 3, 2, 1, 7, 6}[weekday])
 		out.Gulika = period(out.Sunrise, out.Sunset, []int{7, 6, 5, 4, 3, 2, 1}[weekday])
-		return nil
+		out.Calendar, err = calendar(ctx, s, &out, rise, set, nextRise, loc, weekday)
+		return err
 	})
 	return out, err
 }
@@ -164,7 +166,7 @@ func angle(s ephemeris.Session, kind string, jd float64) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if kind == "nakshatra" {
+	if kind == "nakshatra" || kind == "moon_rashi" {
 		return moon.Longitude, nil
 	}
 	sun, err := s.Position(jd, 0, true)
@@ -186,7 +188,11 @@ func nextBoundary(ctx context.Context, s ephemeris.Session, kind string, start, 
 	}
 	index := int(math.Floor(a / width))
 	distance := float64(index+1)*width - a
-	lo, hi := start, start+2
+	span := 2.0
+	if kind == "moon_rashi" {
+		span = 3
+	}
+	lo, hi := start, start+span
 	high, err := angle(s, kind, hi)
 	if err != nil {
 		return 0, 0, err
@@ -218,6 +224,8 @@ func transitions(ctx context.Context, s ephemeris.Session, kind string, start, e
 		width = 360.0 / 27
 	case "karana":
 		width = 6
+	case "moon_rashi":
+		width = 30
 	}
 	out := make([]Segment, 0, 4)
 	cursor := start
@@ -245,6 +253,8 @@ var yogas = []string{"Vishkambha", "Priti", "Ayushman", "Saubhagya", "Shobhana",
 
 func limbName(kind string, index int) string {
 	switch kind {
+	case "moon_rashi":
+		return rashis[(index-1)%12]
 	case "nakshatra":
 		return nakshatras[(index-1)%27]
 	case "yoga":

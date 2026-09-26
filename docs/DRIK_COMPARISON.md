@@ -77,7 +77,7 @@ Do not tune constants or suppress the boundary segment to imitate one page.
 | Rise/set | Upper limb, fixed atmosphere, sea level | Optional elevation/conventions; terrain not modeled |
 | Moonset | Requested civil day | Drik may display following-day event; compare the same event |
 | Daytime periods | Rahu Kalam, Yamaganda, Gulika | Other muhurta systems absent |
-| Religious calendar | Explicitly unsupported | Lunar months, Amanta/Purnimanta, adhika/kshaya, festivals, vrat/parana |
+| Religious calendar | Rule preview: lunar month, adhika, samvat, rashi, Abhijit/Brahma, observances (docs/CALENDAR.md) | Bhadra, kshaya masa, parana, regional variants, specialist review |
 
 Before removing preview, collect permitted reference observations with explicit
 date, coordinates, timezone, ayanamsha, rise convention, elevation and precision.

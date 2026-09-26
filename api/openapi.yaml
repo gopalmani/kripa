@@ -664,6 +664,88 @@ components:
       - mc
       - mc_degree
       additionalProperties: false
+    PanchangCalendar:
+      type: object
+      description: Rule-based lunar calendar, muhurta and observances. Rule preview;
+        not a regional or sampradaya ruling.
+      properties:
+        version:
+          type: string
+          enum:
+          - kripa-calendar-rules-v1
+        review_status:
+          type: string
+          enum:
+          - rule_preview
+        lunar_month:
+          type: object
+          properties:
+            amanta: {type: string}
+            purnimanta: {type: string}
+            adhika: {type: boolean}
+            starts_at: {type: string, format: date-time}
+            ends_at: {type: string, format: date-time}
+          required: [amanta, purnimanta, adhika, starts_at, ends_at]
+          additionalProperties: false
+        samvat:
+          type: object
+          properties:
+            vikram: {type: integer}
+            shaka: {type: integer}
+          required: [vikram, shaka]
+          additionalProperties: false
+        sun_rashi: {type: string}
+        moon_rashi:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+          minItems: 1
+        sankranti:
+          type: object
+          nullable: true
+          properties:
+            rashi: {type: string}
+            at: {type: string, format: date-time}
+          required: [rashi, at]
+          additionalProperties: false
+        muhurta:
+          type: object
+          properties:
+            abhijit:
+              allOf:
+              - $ref: '#/components/schemas/Window'
+              nullable: true
+              description: Omitted (null) on Wednesdays.
+            brahma:
+              $ref: '#/components/schemas/Window'
+          required: [abhijit, brahma]
+          additionalProperties: false
+        observances:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: string}
+              name: {type: string}
+              category:
+                type: string
+                enum: [festival, vrat, jayanti, regional, panchang_event]
+              scope:
+                type: string
+                enum: [widely_observed, regional]
+              tradition: {type: string}
+              regions:
+                type: array
+                items: {type: string}
+              tithi: {type: string}
+              rule: {type: string}
+            required: [id, name, category, scope, tradition, regions, rule]
+            additionalProperties: false
+        conventions:
+          type: array
+          items: {type: string}
+      required: [version, review_status, lunar_month, samvat, sun_rashi, moon_rashi, sankranti, muhurta, observances, conventions]
+      additionalProperties: false
     Segment:
       type: object
       properties:
@@ -671,7 +753,7 @@ components:
           type: integer
           minimum: 1
           maximum: 60
-          description: 'One-based: tithi 1–30, nakshatra/yoga 1–27, karana 1–60.'
+          description: 'One-based: tithi 1–30, nakshatra/yoga 1–27, karana 1–60, rashi 1–12.'
         name:
           type: string
         active_from: &id029
@@ -775,6 +857,8 @@ components:
           $ref: '#/components/schemas/Window'
         gulika:
           $ref: '#/components/schemas/Window'
+        calendar:
+          $ref: '#/components/schemas/PanchangCalendar'
         unsupported:
           type: array
           items:
@@ -806,12 +890,14 @@ components:
       - rahu_kalam
       - yamaganda
       - gulika
+      - calendar
       - unsupported
       - conventions
       additionalProperties: false
       description: Astronomical preview. Moon events cover the requested civil day;
-        null means no event. Vara/paksha apply at sunrise. No lunar months, festivals,
-        vrats or personalized recommendations.
+        null means no event. Vara/paksha apply at sunrise. Lunar month, samvat,
+        muhurta and observance rules are in `calendar` with review_status
+        rule_preview. No personalized recommendations.
     Live:
       type: object
       properties:
