@@ -557,8 +557,10 @@ func observances(d *day) []Observance {
 			// never prevails at sunrise; it is observed on the day it begins.
 			// A kshaya Pratipada belongs to the month that begins that day.
 			month := d.month
-			kshaya := kshayaDay(f.when, f.tithi)
-			if f.later {
+			// Night windows keep the established fallback below instead.
+			nightRule := f.when == atPradosh || f.when == atNishita
+			kshaya := !nightRule && kshayaDay(f.when, f.tithi)
+			if f.later && !nightRule {
 				// Later-day rules keep a tithi that misses both windows on the
 				// day after it begins (the day it prevails at sunrise).
 				p, w := previous[f.when], at[f.when]
@@ -595,6 +597,14 @@ func observances(d *day) []Observance {
 			}
 		case solarNakshatra:
 			if nakshatraAt(f.when) != f.nakshatra {
+				continue
+			}
+			// A nakshatra spanning two decisive times is kept on the first day.
+			previousAt := d.prevRise
+			if f.when == atPradosh {
+				previousAt = d.prevSet
+			}
+			if previousAt > 0 && d.nakshatraAt(previousAt) == f.nakshatra {
 				continue
 			}
 			if m, ok := d.solarMonth(f.solar); ok && m == f.month {

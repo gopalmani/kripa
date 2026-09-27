@@ -92,3 +92,23 @@ func TestYearIsFastAndOrdered(t *testing.T) {
 		t.Fatalf("metadata %+v", v)
 	}
 }
+
+// No festival is reported on nearby days (vriddhi tithi or a nakshatra that
+// spans two sunrises) anywhere in India's main regions.
+func TestNoRepeatedFestivals(t *testing.T) {
+	for y := 2025; y <= 2030; y++ {
+		for _, loc := range [][2]float64{{28.6139, 77.209}, {13.0827, 80.2707}, {22.5726, 88.3639}, {9.9312, 76.2673}} {
+			last := map[string]time.Time{}
+			for _, o := range year(t, y, loc[0], loc[1]).Festivals {
+				if o.Recurring {
+					continue
+				}
+				date, _ := time.Parse("2006-01-02", o.Date)
+				if prev, ok := last[o.ID]; ok && date.Sub(prev) < 20*24*time.Hour {
+					t.Errorf("%d %v: %s on %s and %s", y, loc, o.ID, prev.Format("2006-01-02"), o.Date)
+				}
+				last[o.ID] = date
+			}
+		}
+	}
+}
