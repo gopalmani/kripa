@@ -28,7 +28,10 @@ func TestDelhiObservances2026(t *testing.T) {
 	for date, want := range map[string]string{
 		"2026-01-14": "Makar Sankranti",
 		"2026-02-15": "Maha Shivaratri",
-		"2026-03-04": "Holi",
+		"2026-03-19": "Chaitra Navaratri begins", // kshaya Pratipada, kept on the day it begins
+		"2026-08-26": "Onam · Thiruvonam",
+		"2026-10-16": "Durga Puja · Maha Shashthi",
+		"2026-05-25": "Ganga Dussehra", // kept in Adhika Jyeshtha
 		"2026-08-28": "Raksha Bandhan",
 		"2026-09-04": "Krishna Janmashtami",
 		"2026-09-14": "Ganesh Chaturthi",
@@ -46,9 +49,10 @@ func TestDelhiObservances2026(t *testing.T) {
 	}
 }
 
-// Known convention gap: Bhadra avoidance is not applied, so Holika Dahan
-// follows pradosh-vyapini Purnima (2 March) where many calendars shift to
-// 3 March. Pinned so any future Bhadra rule is a deliberate change.
+// Bhadra covers the whole Purnima pradosh of 2 March 2026 and Purnima ends
+// before the next pradosh, so the classical rule keeps Holika Dahan on 2 March
+// (in Bhadra puchha); published calendars show 3 March, an eclipse day.
+// Pinned so a future change to this convention is deliberate.
 func TestHolikaDahanWithoutBhadraRule(t *testing.T) {
 	if !names(delhi(t, "2026-03-02"))["Holika Dahan"] {
 		t.Fatal("pradosh-vyapini Purnima rule changed")
@@ -107,5 +111,28 @@ func TestSankrantiInstant(t *testing.T) {
 	sk := v.Calendar.Sankranti
 	if sk == nil || sk.Rashi != "Makara" || sk.At.Before(v.Sunrise) || !sk.At.Before(v.NextSunrise) {
 		t.Fatalf("sankranti %+v", sk)
+	}
+}
+
+func TestRegionalSolarCalendars2026(t *testing.T) {
+	for date, want := range map[string]string{
+		"2026-01-13": "Lohri",
+		"2026-01-14": "Thai Pongal",
+		"2026-01-15": "Magh Bihu",
+		"2026-04-14": "Puthandu · Tamil New Year",
+		"2026-04-15": "Poila Baishakh · Bengali New Year",
+		"2026-09-17": "Vishwakarma Puja",
+		"2026-08-28": "Varalakshmi Vratam",
+		"2026-11-08": "Kali Puja",
+	} {
+		if v := delhi(t, date); !names(v)[want] {
+			t.Errorf("%s: want %q, got %+v", date, want, v.Calendar.Observances)
+		}
+	}
+	// Regional festivals carry state codes; pan-Indian ones carry "IN".
+	for _, o := range delhi(t, "2026-11-15").Calendar.Observances {
+		if o.ID == "chhath_puja" && (len(o.RegionCodes) == 0 || o.RegionCodes[0] != "IN-BR") {
+			t.Fatalf("chhath codes %v", o.RegionCodes)
+		}
 	}
 }

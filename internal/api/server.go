@@ -113,6 +113,10 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("GET /metrics", s.protected(http.HandlerFunc(s.metrics)))
 	mux.Handle("POST /v1/charts", s.protected(s.calculate(0)))
 	mux.Handle("POST /v1/panchang", s.protected(s.calculate(1)))
+	mux.Handle("POST /v1/festivals", s.protected(s.calculate(2)))
+	mux.Handle("GET /v1/festivals/catalogue", s.protected(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 200, map[string]any{"calendar_version": panchang.CalendarVersion, "review_status": "rule_preview", "festivals": panchang.Catalogue()})
+	})))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Request-ID", fmt.Sprintf("%s-%d", s.requestPrefix, s.requestSequence.Add(1)))
 		defer func() {
@@ -125,7 +129,7 @@ func (s *Server) Handler() http.Handler {
 		w.Header().Set("X-Powered-By", "KRIPA")
 		w.Header().Set("Link", "<"+SourceURL+">; rel=\"source\"")
 		// Avoid ServeMux's plain-text 404/405 responses for this JSON API.
-		methods := map[string]string{"/health/live": "GET", "/health/ready": "GET", "/v1/meta": "GET", "/metrics": "GET", "/v1/charts": "POST", "/v1/panchang": "POST"}
+		methods := map[string]string{"/health/live": "GET", "/health/ready": "GET", "/v1/meta": "GET", "/metrics": "GET", "/v1/charts": "POST", "/v1/panchang": "POST", "/v1/festivals": "POST", "/v1/festivals/catalogue": "GET"}
 		method, exists := methods[r.URL.Path]
 		if !exists {
 			writeError(w, 404, "not_found")
@@ -180,6 +184,11 @@ func decode(w http.ResponseWriter, r *http.Request, dst any) error {
 		allowed["time"] = true
 		allowed["time_status"] = true
 	}
+	_, yearly := dst.(*panchang.YearRequest)
+	if yearly {
+		delete(allowed, "date")
+		allowed["year"] = true
+	}
 	for shape.More() {
 		token, err := shape.Token()
 		if err != nil {
@@ -211,6 +220,9 @@ func decode(w http.ResponseWriter, r *http.Request, dst any) error {
 	if _, ok := dst.(*chart.Request); ok {
 		required = append(required, "time_status")
 	}
+	if yearly {
+		required[0] = "year"
+	}
 	for _, key := range required {
 		if _, ok := fields[key]; !ok {
 			return errors.New("missing required field")
@@ -234,10 +246,7 @@ func (s *Server) calculate(kind int) http.Handler {
 		started := time.Now()
 		status := 200
 		cached := false
-		route := "charts"
-		if kind == 1 {
-			route = "panchang"
-		}
+		route := []string{"charts", "panchang", "festivals"}[kind]
 		defer func() {
 			if recover() != nil {
 				status = 500
@@ -269,11 +278,40 @@ func (s *Server) calculate(kind int) http.Handler {
 			fail(503, "overloaded")
 			return
 		}
-		ctx, cancel := context.WithTimeout(r.Context(), s.cfg.Timeout)
+		timeout := s.cfg.Timeout
+		if kind == 2 && timeout < 10*time.Second {
+			// A year scan is ~365 lean day evaluations; it is cached per place.
+			timeout = 10 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), timeout)
 		defer cancel()
 		var data []byte
 		var err error
-		if kind == 0 {
+		if kind == 2 {
+			var req panchang.YearRequest
+			if err = decode(w, r, &req); err != nil {
+				fail(decodeStatus(err), "invalid_json_request")
+				return
+			}
+			if _, err = req.Validate(); err != nil {
+				fail(422, err.Error())
+				return
+			}
+			input, _ := json.Marshal(req)
+			digest := sha256.Sum256(input)
+			key := "festivals:" + panchang.CalendarVersion + ":" + s.engine.Version() + ":" + ephemeris.SwissCommit + ":" + ephemeris.DataVersion + ":" + hex.EncodeToString(digest[:])
+			data, cached, err = s.cache.Do(ctx, key, func() ([]byte, error) {
+				s.cacheMisses.Add(1)
+				value, err := panchang.Year(ctx, s.engine, req)
+				if err != nil {
+					return nil, err
+				}
+				return json.Marshal(value)
+			})
+			if cached && err == nil {
+				s.cacheHits.Add(1)
+			}
+		} else if kind == 0 {
 			var req chart.Request
 			if err = decode(w, r, &req); err != nil {
 				fail(decodeStatus(err), "invalid_json_request")
@@ -359,7 +397,7 @@ func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
 	_, _ = fmt.Fprintf(w, "# TYPE kripa_auth_rejections_total counter\nkripa_auth_rejections_total %d\n", s.authRejected.Load())
 	_, _ = fmt.Fprintln(w, "# TYPE kripa_requests_total counter\n# TYPE kripa_errors_total counter\n# TYPE kripa_request_duration_seconds histogram")
-	for k, route := range []string{"charts", "panchang"} {
+	for k, route := range []string{"charts", "panchang", "festivals"} {
 		_, _ = fmt.Fprintf(w, "kripa_requests_total{route=%q} %d\nkripa_errors_total{route=%q} %d\n", route, s.requests[k].Load(), route, s.failures[k].Load())
 		var total uint64
 		for i, bound := range []string{"0.001", "0.005", "0.01", "0.025", "0.05", "0.1", "+Inf"} {
