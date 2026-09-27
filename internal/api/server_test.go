@@ -223,3 +223,49 @@ func TestNativeCacheInputIsolation(t *testing.T) {
 		}
 	}
 }
+
+func TestNativeFestivalYear(t *testing.T) {
+	path := os.Getenv("SWISS_EPHEMERIS_PATH")
+	if path == "" {
+		t.Skip("set SWISS_EPHEMERIS_PATH")
+	}
+	p, err := ephemeris.New(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := New(p, Config{CacheEntries: 8, Logger: zerolog.Nop()}).Handler()
+	body := `{"year":2026,"timezone":"Asia/Kolkata","latitude":28.6139,"longitude":77.209,"profile":"lahiri_upper_limb_v1"}`
+	for _, want := range []string{"MISS", "HIT"} {
+		r := httptest.NewRequest("POST", "/v1/festivals", strings.NewReader(body))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != 200 || w.Header().Get("X-Kripa-Cache") != want {
+			t.Fatalf("festivals %d %s %s", w.Code, w.Header().Get("X-Kripa-Cache"), w.Body.String())
+		}
+		var out struct {
+			Year      int `json:"year"`
+			Festivals []struct {
+				Date, ID    string
+				RegionCodes []string `json:"region_codes"`
+			} `json:"festivals"`
+		}
+		if err := json.Unmarshal(w.Body.Bytes(), &out); err != nil || out.Year != 2026 || len(out.Festivals) < 150 {
+			t.Fatalf("festival year %v %+v", err, out.Year)
+		}
+	}
+	for _, bad := range []string{`{"year":1800,"timezone":"Asia/Kolkata","latitude":28.6,"longitude":77.2,"profile":"lahiri_upper_limb_v1"}`, `{"date":"2026-01-01","timezone":"Asia/Kolkata","latitude":28.6,"longitude":77.2,"profile":"lahiri_upper_limb_v1"}`} {
+		r := httptest.NewRequest("POST", "/v1/festivals", strings.NewReader(bad))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if w.Code != 422 && w.Code != 400 {
+			t.Fatalf("bad festival request %d", w.Code)
+		}
+	}
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/v1/festivals/catalogue", nil))
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `"id":"chhath_puja"`) {
+		t.Fatalf("catalogue %d", w.Code)
+	}
+}

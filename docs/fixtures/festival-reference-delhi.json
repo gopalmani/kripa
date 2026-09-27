@@ -1,0 +1,494 @@
+{
+ "location": {
+  "latitude": 28.6139,
+  "longitude": 77.209,
+  "timezone": "Asia/Kolkata"
+ },
+ "source": "Published New Delhi Hindu festival calendars for 2025-2027, compared manually on 2026-09-27; dates only, no other content retained",
+ "years": {
+  "2025": {
+   "akshaya_tritiya": [
+    "2025-04-30"
+   ],
+   "anant_chaturdashi": [
+    "2025-09-06"
+   ],
+   "bhai_dooj": [
+    "2025-10-23"
+   ],
+   "buddha_purnima": [
+    "2025-05-12"
+   ],
+   "chaitra_navaratri": [
+    "2025-03-30"
+   ],
+   "chhath_puja": [
+    "2025-10-27"
+   ],
+   "dattatreya_jayanti": [
+    "2025-12-04"
+   ],
+   "dhanteras": [
+    "2025-10-18"
+   ],
+   "diwali": [
+    "2025-10-20"
+   ],
+   "durga_ashtami": [
+    "2025-09-30"
+   ],
+   "ganesh_chaturthi": [
+    "2025-08-27"
+   ],
+   "ganga_dussehra": [
+    "2025-06-05"
+   ],
+   "gangaur": [
+    "2025-03-31"
+   ],
+   "govardhan_puja": [
+    "2025-10-22"
+   ],
+   "gudi_padwa": [
+    "2025-03-30"
+   ],
+   "guru_purnima": [
+    "2025-07-10"
+   ],
+   "hanuman_jayanti": [
+    "2025-04-12"
+   ],
+   "hariyali_teej": [
+    "2025-07-27"
+   ],
+   "hartalika_teej": [
+    "2025-08-26"
+   ],
+   "holi": [
+    "2025-03-14"
+   ],
+   "holika_dahan": [
+    "2025-03-13"
+   ],
+   "kartika_purnima": [
+    "2025-11-05"
+   ],
+   "karva_chauth": [
+    "2025-10-10"
+   ],
+   "kojagari_lakshmi_puja": [
+    "2025-10-06"
+   ],
+   "krishna_janmashtami": [
+    "2025-08-15"
+   ],
+   "maha_navami": [
+    "2025-10-01"
+   ],
+   "maha_shivaratri": [
+    "2025-02-26"
+   ],
+   "makar_sankranti": [
+    "2025-01-14"
+   ],
+   "nag_panchami": [
+    "2025-07-29"
+   ],
+   "naraka_chaturdashi": [
+    "2025-10-20"
+   ],
+   "narasimha_jayanti": [
+    "2025-05-11"
+   ],
+   "onam": [
+    "2025-09-05"
+   ],
+   "parashurama_jayanti": [
+    "2025-04-29"
+   ],
+   "pitru_paksha": [
+    "2025-09-08"
+   ],
+   "pongal": [
+    "2025-01-14"
+   ],
+   "radha_ashtami": [
+    "2025-08-31"
+   ],
+   "raksha_bandhan": [
+    "2025-08-09"
+   ],
+   "rama_navami": [
+    "2025-04-06"
+   ],
+   "rath_yatra": [
+    "2025-06-27"
+   ],
+   "rishi_panchami": [
+    "2025-08-28"
+   ],
+   "sarva_pitru_amavasya": [
+    "2025-09-21"
+   ],
+   "sharad_navaratri": [
+    "2025-09-22"
+   ],
+   "sharad_purnima": [
+    "2025-10-06"
+   ],
+   "sita_navami": [
+    "2025-05-05"
+   ],
+   "tulsi_vivah": [
+    "2025-11-02"
+   ],
+   "ugadi": [
+    "2025-03-30"
+   ],
+   "varalakshmi_vratam": [
+    "2025-08-08"
+   ],
+   "vasant_panchami": [
+    "2025-02-02"
+   ],
+   "vat_purnima": [
+    "2025-06-10"
+   ],
+   "vat_savitri": [
+    "2025-05-26"
+   ],
+   "vijayadashami": [
+    "2025-10-02"
+   ],
+   "vishwakarma_puja": [
+    "2025-09-17"
+   ],
+   "vivah_panchami": [
+    "2025-11-25"
+   ]
+  },
+  "2026": {
+   "akshaya_tritiya": [
+    "2026-04-19"
+   ],
+   "anant_chaturdashi": [
+    "2026-09-25"
+   ],
+   "bhai_dooj": [
+    "2026-11-11"
+   ],
+   "buddha_purnima": [
+    "2026-05-01"
+   ],
+   "chaitra_navaratri": [
+    "2026-03-19"
+   ],
+   "chhath_puja": [
+    "2026-11-15"
+   ],
+   "dattatreya_jayanti": [
+    "2026-12-23"
+   ],
+   "dhanteras": [
+    "2026-11-06"
+   ],
+   "diwali": [
+    "2026-11-08"
+   ],
+   "durga_ashtami": [
+    "2026-10-19"
+   ],
+   "ganesh_chaturthi": [
+    "2026-09-14"
+   ],
+   "ganga_dussehra": [
+    "2026-05-25"
+   ],
+   "gangaur": [
+    "2026-03-21"
+   ],
+   "govardhan_puja": [
+    "2026-11-10"
+   ],
+   "gudi_padwa": [
+    "2026-03-19"
+   ],
+   "guru_purnima": [
+    "2026-07-29"
+   ],
+   "hanuman_jayanti": [
+    "2026-04-02"
+   ],
+   "hariyali_teej": [
+    "2026-08-15"
+   ],
+   "hartalika_teej": [
+    "2026-09-14"
+   ],
+   "holi": [
+    "2026-03-04"
+   ],
+   "holika_dahan": [
+    "2026-03-03"
+   ],
+   "kartika_purnima": [
+    "2026-11-24"
+   ],
+   "karva_chauth": [
+    "2026-10-29"
+   ],
+   "kojagari_lakshmi_puja": [
+    "2026-10-25"
+   ],
+   "krishna_janmashtami": [
+    "2026-09-04"
+   ],
+   "maha_navami": [
+    "2026-10-19"
+   ],
+   "maha_shivaratri": [
+    "2026-02-15"
+   ],
+   "makar_sankranti": [
+    "2026-01-14"
+   ],
+   "nag_panchami": [
+    "2026-08-17"
+   ],
+   "naraka_chaturdashi": [
+    "2026-11-08"
+   ],
+   "narasimha_jayanti": [
+    "2026-04-30"
+   ],
+   "onam": [
+    "2026-08-26"
+   ],
+   "parashurama_jayanti": [
+    "2026-04-19"
+   ],
+   "pitru_paksha": [
+    "2026-09-27"
+   ],
+   "pongal": [
+    "2026-01-14"
+   ],
+   "radha_ashtami": [
+    "2026-09-19"
+   ],
+   "raksha_bandhan": [
+    "2026-08-28"
+   ],
+   "rama_navami": [
+    "2026-03-26",
+    "2026-03-27"
+   ],
+   "rath_yatra": [
+    "2026-07-16"
+   ],
+   "rishi_panchami": [
+    "2026-09-15"
+   ],
+   "sarva_pitru_amavasya": [
+    "2026-10-10"
+   ],
+   "sharad_navaratri": [
+    "2026-10-11"
+   ],
+   "sharad_purnima": [
+    "2026-10-25"
+   ],
+   "sita_navami": [
+    "2026-04-25"
+   ],
+   "tulsi_vivah": [
+    "2026-11-21"
+   ],
+   "ugadi": [
+    "2026-03-19"
+   ],
+   "varalakshmi_vratam": [
+    "2026-08-28"
+   ],
+   "vasant_panchami": [
+    "2026-01-23"
+   ],
+   "vat_purnima": [
+    "2026-06-29"
+   ],
+   "vat_savitri": [
+    "2026-05-16"
+   ],
+   "vijayadashami": [
+    "2026-10-20"
+   ],
+   "vishwakarma_puja": [
+    "2026-09-17"
+   ],
+   "vivah_panchami": [
+    "2026-12-14"
+   ]
+  },
+  "2027": {
+   "akshaya_tritiya": [
+    "2027-05-09"
+   ],
+   "anant_chaturdashi": [
+    "2027-09-14"
+   ],
+   "bhai_dooj": [
+    "2027-10-31"
+   ],
+   "buddha_purnima": [
+    "2027-05-20"
+   ],
+   "chaitra_navaratri": [
+    "2027-04-07"
+   ],
+   "chhath_puja": [
+    "2027-11-04"
+   ],
+   "dattatreya_jayanti": [
+    "2027-12-13"
+   ],
+   "dhanteras": [
+    "2027-10-27"
+   ],
+   "diwali": [
+    "2027-10-29"
+   ],
+   "durga_ashtami": [
+    "2027-10-07"
+   ],
+   "ganesh_chaturthi": [
+    "2027-09-04"
+   ],
+   "ganga_dussehra": [
+    "2027-06-13"
+   ],
+   "gangaur": [
+    "2027-04-09"
+   ],
+   "govardhan_puja": [
+    "2027-10-30"
+   ],
+   "gudi_padwa": [
+    "2027-04-07"
+   ],
+   "guru_purnima": [
+    "2027-07-18"
+   ],
+   "hanuman_jayanti": [
+    "2027-04-20"
+   ],
+   "hariyali_teej": [
+    "2027-08-04"
+   ],
+   "hartalika_teej": [
+    "2027-09-03"
+   ],
+   "holi": [
+    "2027-03-22"
+   ],
+   "holika_dahan": [
+    "2027-03-21"
+   ],
+   "kartika_purnima": [
+    "2027-11-14"
+   ],
+   "karva_chauth": [
+    "2027-10-18"
+   ],
+   "kojagari_lakshmi_puja": [
+    "2027-10-14"
+   ],
+   "krishna_janmashtami": [
+    "2027-08-25"
+   ],
+   "maha_navami": [
+    "2027-10-08"
+   ],
+   "maha_shivaratri": [
+    "2027-03-06"
+   ],
+   "makar_sankranti": [
+    "2027-01-15"
+   ],
+   "nag_panchami": [
+    "2027-08-06"
+   ],
+   "naraka_chaturdashi": [
+    "2027-10-28"
+   ],
+   "narasimha_jayanti": [
+    "2027-05-18"
+   ],
+   "onam": [
+    "2027-09-12"
+   ],
+   "parashurama_jayanti": [
+    "2027-05-08"
+   ],
+   "pitru_paksha": [
+    "2027-09-16"
+   ],
+   "pongal": [
+    "2027-01-15"
+   ],
+   "radha_ashtami": [
+    "2027-09-08"
+   ],
+   "raksha_bandhan": [
+    "2027-08-17"
+   ],
+   "rama_navami": [
+    "2027-04-15"
+   ],
+   "rath_yatra": [
+    "2027-07-05"
+   ],
+   "rishi_panchami": [
+    "2027-09-04"
+   ],
+   "sarva_pitru_amavasya": [
+    "2027-09-29"
+   ],
+   "sharad_navaratri": [
+    "2027-09-30"
+   ],
+   "sharad_purnima": [
+    "2027-10-14"
+   ],
+   "sita_navami": [
+    "2027-05-14"
+   ],
+   "tulsi_vivah": [
+    "2027-11-11"
+   ],
+   "ugadi": [
+    "2027-04-07"
+   ],
+   "varalakshmi_vratam": [
+    "2027-08-13"
+   ],
+   "vasant_panchami": [
+    "2027-02-11"
+   ],
+   "vat_purnima": [
+    "2027-06-18"
+   ],
+   "vat_savitri": [
+    "2027-06-04"
+   ],
+   "vijayadashami": [
+    "2027-10-09"
+   ],
+   "vishwakarma_puja": [
+    "2027-09-17"
+   ],
+   "vivah_panchami": [
+    "2027-12-03"
+   ]
+  }
+ }
+}

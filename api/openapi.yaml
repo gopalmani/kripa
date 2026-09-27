@@ -214,6 +214,67 @@ paths:
               description: Generated unique process request identifier.
               schema:
                 type: string
+  /v1/festivals:
+    post:
+      operationId: festivalYear
+      summary: Every observance in a Gregorian year at a place
+      description: Rule preview. Dates are the civil dates of Panchang days at the requested place. Cached per request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FestivalYearRequest'
+            example:
+              year: 2027
+              timezone: Asia/Kolkata
+              latitude: 28.6139
+              longitude: 77.209
+              profile: lahiri_upper_limb_v1
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FestivalYear'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+            X-Kripa-Cache:
+              schema:
+                type: string
+                enum:
+                - HIT
+                - MISS
+              description: HIT includes coalesced followers.
+        '400': *id001
+        '401': *id002
+        '413': *id003
+        '415': *id004
+        '422': *id005
+        '500': *id006
+        '503': *id007
+        '504': *id008
+  /v1/festivals/catalogue:
+    get:
+      operationId: festivalCatalogue
+      summary: Festival rules with regions and communities
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FestivalCatalogue'
+          headers:
+            X-Request-ID:
+              description: Generated unique process request identifier.
+              schema:
+                type: string
+        '401': *id002
   /health/live:
     get:
       operationId: getLive
@@ -672,7 +733,7 @@ components:
         version:
           type: string
           enum:
-          - kripa-calendar-rules-v1
+          - kripa-calendar-rules-v2
         review_status:
           type: string
           enum:
@@ -727,28 +788,138 @@ components:
         observances:
           type: array
           items:
-            type: object
-            properties:
-              id: {type: string}
-              name: {type: string}
-              category:
-                type: string
-                enum: [festival, vrat, jayanti, regional, panchang_event]
-              scope:
-                type: string
-                enum: [widely_observed, regional]
-              tradition: {type: string}
-              regions:
-                type: array
-                items: {type: string}
-              tithi: {type: string}
-              rule: {type: string}
-            required: [id, name, category, scope, tradition, regions, rule]
-            additionalProperties: false
+            $ref: '#/components/schemas/Observance'
         conventions:
           type: array
           items: {type: string}
       required: [version, review_status, lunar_month, samvat, sun_rashi, moon_rashi, sankranti, muhurta, observances, conventions]
+      additionalProperties: false
+    Observance:
+      type: object
+      properties:
+        id: {type: string}
+        name: {type: string}
+        category:
+          type: string
+          enum: [festival, vrat, jayanti, regional, panchang_event]
+        scope:
+          type: string
+          enum: [widely_observed, regional]
+        tradition: {type: string}
+        regions:
+          type: array
+          description: Display labels for where the observance is mainly kept.
+          items: {type: string}
+        region_codes:
+          type: array
+          description: ISO 3166-2 subdivision codes (IN-XX); "IN" for all of India.
+          items: {type: string}
+        communities:
+          type: array
+          items: {type: string}
+        recurring:
+          type: boolean
+          description: Monthly or fortnightly observances (Ekadashi, Pradosh, Purnima, Sankranti and so on).
+        tithi: {type: string}
+        rule: {type: string}
+      required: [id, name, category, scope, tradition, regions, region_codes, communities, recurring, rule]
+      additionalProperties: false
+    FestivalOccurrence:
+      type: object
+      properties:
+        date: {type: string, format: date}
+        id: {type: string}
+        name: {type: string}
+        category:
+          type: string
+          enum: [festival, vrat, jayanti, regional, panchang_event]
+        scope:
+          type: string
+          enum: [widely_observed, regional]
+        tradition: {type: string}
+        regions:
+          type: array
+          description: Display labels for where the observance is mainly kept.
+          items: {type: string}
+        region_codes:
+          type: array
+          description: ISO 3166-2 subdivision codes (IN-XX); "IN" for all of India.
+          items: {type: string}
+        communities:
+          type: array
+          items: {type: string}
+        recurring:
+          type: boolean
+          description: Monthly or fortnightly observances (Ekadashi, Pradosh, Purnima, Sankranti and so on).
+        tithi: {type: string}
+        rule: {type: string}
+      required: [date, id, name, category, scope, tradition, regions, region_codes, communities, recurring, rule]
+      additionalProperties: false
+    FestivalYearRequest:
+      type: object
+      properties:
+        year: {type: integer, minimum: 1900, maximum: 2099}
+        timezone: {type: string}
+        latitude: {type: number, minimum: -90, maximum: 90}
+        longitude: {type: number, minimum: -180, maximum: 180}
+        profile:
+          type: string
+          enum: [lahiri_upper_limb_v1]
+      required: [year, timezone, latitude, longitude, profile]
+      additionalProperties: false
+    FestivalYear:
+      type: object
+      properties:
+        year: {type: integer}
+        timezone: {type: string}
+        latitude: {type: number}
+        longitude: {type: number}
+        profile: {type: string}
+        calculation_version: {type: string}
+        calendar_version: {type: string}
+        ephemeris_version: {type: string}
+        review_status:
+          type: string
+          enum: [rule_preview]
+        conventions:
+          type: array
+          items: {type: string}
+        festivals:
+          type: array
+          items:
+            $ref: '#/components/schemas/FestivalOccurrence'
+      required: [year, timezone, latitude, longitude, profile, calculation_version, calendar_version, ephemeris_version, review_status, conventions, festivals]
+      additionalProperties: false
+    FestivalCatalogue:
+      type: object
+      properties:
+        calendar_version: {type: string}
+        review_status:
+          type: string
+          enum: [rule_preview]
+        festivals:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: string}
+              name: {type: string}
+              category: {type: string}
+              scope: {type: string}
+              tradition: {type: string}
+              regions:
+                type: array
+                items: {type: string}
+              region_codes:
+                type: array
+                items: {type: string}
+              communities:
+                type: array
+                items: {type: string}
+              rule: {type: string}
+            required: [id, name, category, scope, tradition, regions, region_codes, communities, rule]
+            additionalProperties: false
+      required: [calendar_version, review_status, festivals]
       additionalProperties: false
     Segment:
       type: object

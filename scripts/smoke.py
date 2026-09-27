@@ -66,6 +66,9 @@ assert call('/v1/charts', 'POST', chart)['ascendant'] is None
 panchang = dict(date='2026-09-21', timezone='Asia/Kolkata', latitude=12.9716, longitude=77.5946, profile='lahiri_upper_limb_v1')
 assert call('/v1/panchang', 'POST', panchang)['review_status'] == 'astronomical_preview'
 call('/v1/panchang', 'POST', panchang)
+festivals = dict(year=2027, timezone='Asia/Kolkata', latitude=28.6139, longitude=77.209, profile='lahiri_upper_limb_v1')
+assert any(o['id'] == 'diwali' for o in call('/v1/festivals', 'POST', festivals)['festivals'])
+assert any(o['id'] == 'onam' for o in call('/v1/festivals/catalogue')['festivals'])
 call('/v1/charts', 'POST', dict(chart, unexpected=True), 400)
 call('/v1/charts', 'POST', dict(chart, date='2024-02-30'), 422)
 call('/metrics')
