@@ -946,6 +946,39 @@ components:
       description: Half-open segment; first active_from is clipped to sunrise, last
         ends_at is the actual transition and can exceed next_sunrise. Intersect with
         [sunrise,next_sunrise).
+    ChaughadiyaPeriod:
+      type: object
+      properties:
+        name:
+          type: string
+          enum: [Amrit, Shubh, Labh, Char, Udveg, Kaal, Rog]
+        nature:
+          type: string
+          enum: [good, neutral, inauspicious]
+          description: Traditional classification only, not a personalized recommendation.
+        start: *id029
+        end: *id029
+      required: [name, nature, start, end]
+      additionalProperties: false
+    Chaughadiya:
+      type: object
+      properties:
+        day:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChaughadiyaPeriod'
+          minItems: 8
+          maxItems: 8
+        night:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChaughadiyaPeriod'
+          minItems: 8
+          maxItems: 8
+      required: [day, night]
+      additionalProperties: false
+      description: Eight equal day periods (sunrise to sunset) and eight night periods
+        (sunset to next sunrise), starting from the lord of the sunrise weekday.
     Window:
       type: object
       properties:
@@ -1032,6 +1065,8 @@ components:
           $ref: '#/components/schemas/Window'
         gulika:
           $ref: '#/components/schemas/Window'
+        chaughadiya:
+          $ref: '#/components/schemas/Chaughadiya'
         calendar:
           $ref: '#/components/schemas/PanchangCalendar'
         unsupported:
@@ -1065,6 +1100,7 @@ components:
       - rahu_kalam
       - yamaganda
       - gulika
+      - chaughadiya
       - calendar
       - unsupported
       - conventions

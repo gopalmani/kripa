@@ -40,6 +40,8 @@ Daytime periods divide the rounded sunrise-to-sunset duration into eight equal p
 
 This is the implemented daytime Gulika convention; nighttime periods and religious suitability recommendations are unsupported.
 
+Chaughadiya divides sunrise→sunset and sunset→next sunrise into eight equal periods each. Day periods cycle Udveg, Char, Labh, Amrit, Kaal, Shubh, Rog starting from the sunrise weekday's lord (Sun Udveg, Mon Amrit, Tue Rog, Wed Labh, Thu Shubh, Fri Char, Sat Kaal); night periods cycle Shubh, Amrit, Char, Rog, Kaal, Labh, Udveg (Sun Shubh, Mon Char, Tue Kaal, Wed Udveg, Thu Amrit, Fri Rog, Sat Labh). `nature` is the traditional classification (Amrit/Shubh/Labh good, Char neutral, Udveg/Kaal/Rog inauspicious), not a personalized recommendation. Night Gulika, Rahu and Yamaganda remain unsupported.
+
 ## Native concurrency and cache lifecycle
 
 The exact source defines TLS on Linux GCC builds and disables it on Apple builds (`sweodef.h`). A process-wide channel serializes the entire configuration/calculation session and honors context cancellation while waiting. `runtime.LockOSThread` keeps all calls on the same native thread. Each session sets the ephemeris path and Lahiri mode; tropical calls omit the sidereal flag. `swe_close` runs before unlocking the OS thread, avoiding native resources stranded on Go worker threads. `SE_EPHE_PATH` overrides upstream's explicit path, so startup rejects it. Paths exceeding the native buffer limit are rejected.
