@@ -31,31 +31,32 @@ type Window struct {
 	End   time.Time `json:"end"`
 }
 type Result struct {
-	Date               string     `json:"date"`
-	Timezone           string     `json:"timezone"`
-	Latitude           float64    `json:"latitude"`
-	Longitude          float64    `json:"longitude"`
-	Profile            string     `json:"profile"`
-	CalculationVersion string     `json:"calculation_version"`
-	EphemerisVersion   string     `json:"ephemeris_version"`
-	ReviewStatus       string     `json:"review_status"`
-	Sunrise            time.Time  `json:"sunrise"`
-	Sunset             time.Time  `json:"sunset"`
-	NextSunrise        time.Time  `json:"next_sunrise"`
-	Moonrise           *time.Time `json:"moonrise"`
-	Moonset            *time.Time `json:"moonset"`
-	Vaar               string     `json:"vaar"`
-	Paksha             string     `json:"paksha_at_sunrise"`
-	Tithi              []Segment  `json:"tithi"`
-	Nakshatra          []Segment  `json:"nakshatra"`
-	Yoga               []Segment  `json:"yoga"`
-	Karana             []Segment  `json:"karana"`
-	RahuKalam          Window     `json:"rahu_kalam"`
-	Yamaganda          Window     `json:"yamaganda"`
-	Gulika             Window     `json:"gulika"`
-	Calendar           Calendar   `json:"calendar"`
-	Unsupported        []string   `json:"unsupported"`
-	Conventions        []string   `json:"conventions"`
+	Date               string      `json:"date"`
+	Timezone           string      `json:"timezone"`
+	Latitude           float64     `json:"latitude"`
+	Longitude          float64     `json:"longitude"`
+	Profile            string      `json:"profile"`
+	CalculationVersion string      `json:"calculation_version"`
+	EphemerisVersion   string      `json:"ephemeris_version"`
+	ReviewStatus       string      `json:"review_status"`
+	Sunrise            time.Time   `json:"sunrise"`
+	Sunset             time.Time   `json:"sunset"`
+	NextSunrise        time.Time   `json:"next_sunrise"`
+	Moonrise           *time.Time  `json:"moonrise"`
+	Moonset            *time.Time  `json:"moonset"`
+	Vaar               string      `json:"vaar"`
+	Paksha             string      `json:"paksha_at_sunrise"`
+	Tithi              []Segment   `json:"tithi"`
+	Nakshatra          []Segment   `json:"nakshatra"`
+	Yoga               []Segment   `json:"yoga"`
+	Karana             []Segment   `json:"karana"`
+	RahuKalam          Window      `json:"rahu_kalam"`
+	Yamaganda          Window      `json:"yamaganda"`
+	Gulika             Window      `json:"gulika"`
+	Chaughadiya        Chaughadiya `json:"chaughadiya"`
+	Calendar           Calendar    `json:"calendar"`
+	Unsupported        []string    `json:"unsupported"`
+	Conventions        []string    `json:"conventions"`
 }
 
 func (r Request) Validate() (time.Time, *time.Location, error) {
@@ -152,6 +153,7 @@ func Calculate(ctx context.Context, p ephemeris.Provider, r Request) (Result, er
 		out.RahuKalam = period(out.Sunrise, out.Sunset, []int{8, 2, 7, 5, 6, 4, 3}[weekday])
 		out.Yamaganda = period(out.Sunrise, out.Sunset, []int{5, 4, 3, 2, 1, 7, 6}[weekday])
 		out.Gulika = period(out.Sunrise, out.Sunset, []int{7, 6, 5, 4, 3, 2, 1}[weekday])
+		out.Chaughadiya = chaughadiya(out.Sunrise, out.Sunset, out.NextSunrise, weekday)
 		out.Calendar, err = calendar(ctx, s, &out, rise, set, nextRise, loc, weekday)
 		return err
 	})
